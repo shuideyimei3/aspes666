@@ -1,5 +1,6 @@
 package cn.aspes.agri.trade.service;
 
+import cn.aspes.agri.trade.config.TestDatabaseConfig;
 import cn.aspes.agri.trade.dto.FarmerProductRequest;
 import cn.aspes.agri.trade.entity.FarmerInfo;
 import cn.aspes.agri.trade.entity.FarmerProduct;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @SpringBootTest
 @ActiveProfiles("test")
+@Import(TestDatabaseConfig.class)
 @Transactional
 class FarmerProductServiceIntegrationTest {
 

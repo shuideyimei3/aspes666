@@ -83,6 +83,7 @@ public class LogisticsRecordServiceImpl extends ServiceImpl<LogisticsRecordMappe
         LogisticsTrace trace = new LogisticsTrace();
         trace.setLogisticsId(logisticsId);
         trace.setNodeTime(LocalDateTime.now());
+        trace.setNodeLocation("发货地");
         trace.setNodeDesc("货物已发出");
         logisticsTraceService.save(trace);
     }
@@ -139,6 +140,7 @@ public class LogisticsRecordServiceImpl extends ServiceImpl<LogisticsRecordMappe
         LogisticsTrace trace = new LogisticsTrace();
         trace.setLogisticsId(logisticsId);
         trace.setNodeTime(LocalDateTime.now());
+        trace.setNodeLocation("目的地");
         trace.setNodeDesc("货物已签收");
         logisticsTraceService.save(trace);
     }

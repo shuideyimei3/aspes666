@@ -16,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -65,8 +67,18 @@ class ContractIntegrationTest {
         // 直接创建合同实体
         PurchaseContract contract = new PurchaseContract();
         contract.setContractNo("CT-" + System.currentTimeMillis());
+        contract.setDockingId(1L); // 设置必需的docking_id
         contract.setPurchaserId(purchaserId);
         contract.setFarmerId(farmerId);
+        
+        // 设置product_info
+        Map<String, Object> productInfo = new HashMap<>();
+        productInfo.put("name", "测试产品");
+        productInfo.put("quantity", 100);
+        productInfo.put("unit", "kg");
+        productInfo.put("price", 5.0);
+        contract.setProductInfo(productInfo);
+        
         contract.setTotalAmount(new BigDecimal("500.00"));
         contract.setPaymentTerms("30天内支付");
         contract.setDeliveryTime(LocalDate.now().plusDays(7));
@@ -89,8 +101,18 @@ class ContractIntegrationTest {
         // 创建合同
         PurchaseContract contract = new PurchaseContract();
         contract.setContractNo("CT-" + System.currentTimeMillis());
+        contract.setDockingId(1L); // 设置必需的docking_id
         contract.setPurchaserId(purchaserId);
         contract.setFarmerId(farmerId);
+        
+        // 设置product_info
+        Map<String, Object> productInfo = new HashMap<>();
+        productInfo.put("name", "测试产品");
+        productInfo.put("quantity", 100);
+        productInfo.put("unit", "kg");
+        productInfo.put("price", 5.0);
+        contract.setProductInfo(productInfo);
+        
         contract.setTotalAmount(new BigDecimal("500.00"));
         contract.setPaymentTerms("30天内支付");
         contract.setDeliveryTime(LocalDate.now().plusDays(7));
@@ -114,9 +136,19 @@ class ContractIntegrationTest {
         // 创建多个合同
         for (int i = 0; i < 3; i++) {
             PurchaseContract contract = new PurchaseContract();
-            contract.setContractNo("CT-" + System.currentTimeMillis() + "-" + amount.toString());
+            contract.setContractNo("CT-" + System.currentTimeMillis() + "-" + i);
+            contract.setDockingId(1L + i); // 设置必需的docking_id
             contract.setPurchaserId(purchaserId);
             contract.setFarmerId(farmerId);
+            
+            // 设置product_info
+            Map<String, Object> productInfo = new HashMap<>();
+            productInfo.put("name", "测试产品" + i);
+            productInfo.put("quantity", 100 + i * 10);
+            productInfo.put("unit", "kg");
+            productInfo.put("price", 5.0 + i * 0.5);
+            contract.setProductInfo(productInfo);
+            
             contract.setTotalAmount(new BigDecimal(500 + i * 100));
             contract.setPaymentTerms("30天内支付");
             contract.setDeliveryTime(LocalDate.now().plusDays(7 + i));
@@ -136,9 +168,19 @@ class ContractIntegrationTest {
         // 创建多个合同，其中一些签署
         for (int i = 0; i < 2; i++) {
             PurchaseContract contract = new PurchaseContract();
-            contract.setContractNo("CT-" + System.currentTimeMillis() + "-" + amount.toString());
+            contract.setContractNo("CT-" + System.currentTimeMillis() + "-" + i);
+            contract.setDockingId(1L + i); // 设置必需的docking_id
             contract.setPurchaserId(purchaserId);
             contract.setFarmerId(farmerId);
+            
+            // 设置product_info
+            Map<String, Object> productInfo = new HashMap<>();
+            productInfo.put("name", "测试产品" + i);
+            productInfo.put("quantity", 100 + i * 10);
+            productInfo.put("unit", "kg");
+            productInfo.put("price", 5.0 + i * 0.5);
+            contract.setProductInfo(productInfo);
+            
             contract.setTotalAmount(new BigDecimal(500 + i * 100));
             contract.setPaymentTerms("30天内支付");
             contract.setDeliveryTime(LocalDate.now().plusDays(7 + i));
@@ -151,8 +193,18 @@ class ContractIntegrationTest {
         // 创建已签署的合同
         PurchaseContract signedContract = new PurchaseContract();
         signedContract.setContractNo("CT-" + System.currentTimeMillis());
+        signedContract.setDockingId(10L); // 设置必需的docking_id
         signedContract.setPurchaserId(purchaserId);
         signedContract.setFarmerId(farmerId);
+        
+        // 设置product_info
+        Map<String, Object> productInfo = new HashMap<>();
+        productInfo.put("name", "已签署测试产品");
+        productInfo.put("quantity", 100);
+        productInfo.put("unit", "kg");
+        productInfo.put("price", 8.0);
+        signedContract.setProductInfo(productInfo);
+        
         signedContract.setTotalAmount(new BigDecimal("800.00"));
         signedContract.setPaymentTerms("30天内支付");
         signedContract.setDeliveryTime(LocalDate.now().plusDays(9));
@@ -173,8 +225,18 @@ class ContractIntegrationTest {
         // 创建合同
         PurchaseContract contract = new PurchaseContract();
         contract.setContractNo("CT-" + System.currentTimeMillis());
+        contract.setDockingId(20L); // 设置必需的docking_id
         contract.setPurchaserId(purchaserId);
         contract.setFarmerId(farmerId);
+        
+        // 设置product_info
+        Map<String, Object> productInfo = new HashMap<>();
+        productInfo.put("name", "详情测试产品");
+        productInfo.put("quantity", 100);
+        productInfo.put("unit", "kg");
+        productInfo.put("price", 5.0);
+        contract.setProductInfo(productInfo);
+        
         contract.setTotalAmount(new BigDecimal("500.00"));
         contract.setPaymentTerms("30天内支付");
         contract.setDeliveryTime(LocalDate.now().plusDays(7));
@@ -199,8 +261,18 @@ class ContractIntegrationTest {
         // 创建合同
         PurchaseContract contract = new PurchaseContract();
         contract.setContractNo("CT-" + System.currentTimeMillis());
+        contract.setDockingId(30L); // 设置必需的docking_id
         contract.setPurchaserId(purchaserId);
         contract.setFarmerId(farmerId);
+        
+        // 设置product_info
+        Map<String, Object> productInfo = new HashMap<>();
+        productInfo.put("name", "状态进展测试产品");
+        productInfo.put("quantity", 200);
+        productInfo.put("unit", "kg");
+        productInfo.put("price", 5.0);
+        contract.setProductInfo(productInfo);
+        
         contract.setTotalAmount(new BigDecimal("1000.00"));
         contract.setPaymentTerms("60天内支付");
         contract.setDeliveryTime(LocalDate.now().plusDays(14));
@@ -243,9 +315,19 @@ class ContractIntegrationTest {
         // 为同一农民创建多个合同
         for (int i = 0; i < 5; i++) {
             PurchaseContract contract = new PurchaseContract();
-            contract.setContractNo("CT-" + System.currentTimeMillis() + "-" + amount.toString());
+            contract.setContractNo("CT-" + System.currentTimeMillis() + "-" + i);
+            contract.setDockingId(40L + i); // 设置必需的docking_id
             contract.setPurchaserId(purchaserId + i); // 不同采购方
             contract.setFarmerId(farmerId); // 相同农民
+            
+            // 设置product_info
+            Map<String, Object> productInfo = new HashMap<>();
+            productInfo.put("name", "多合同测试产品" + i);
+            productInfo.put("quantity", 100 + i * 10);
+            productInfo.put("unit", "kg");
+            productInfo.put("price", 5.0 + i * 0.5);
+            contract.setProductInfo(productInfo);
+            
             contract.setTotalAmount(new BigDecimal(500 + i * 100));
             contract.setPaymentTerms("30天内支付");
             contract.setDeliveryTime(LocalDate.now().plusDays(7 + i));
@@ -274,8 +356,18 @@ class ContractIntegrationTest {
         for (BigDecimal amount : amounts) {
             PurchaseContract contract = new PurchaseContract();
             contract.setContractNo("CT-" + System.currentTimeMillis() + "-" + amount.toString());
+            contract.setDockingId(50L + amounts.length); // 设置必需的docking_id
             contract.setPurchaserId(purchaserId);
             contract.setFarmerId(farmerId);
+            
+            // 设置product_info
+            Map<String, Object> productInfo = new HashMap<>();
+            productInfo.put("name", "金额变化测试产品");
+            productInfo.put("quantity", 100);
+            productInfo.put("unit", "kg");
+            productInfo.put("price", amount.doubleValue() / 100); // 根据金额计算单价
+            contract.setProductInfo(productInfo);
+            
             contract.setTotalAmount(amount);
             contract.setPaymentTerms("30天内支付");
             contract.setDeliveryTime(LocalDate.now().plusDays(7));
