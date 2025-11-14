@@ -1,0 +1,247 @@
+{
+  "info": {
+    "name": "农产品供应链系统API测试",
+    "description": "基于OpenAPI 3.0.1生成的API Fox测试配置",
+    "version": "1.0.0"
+  },
+  "server": {
+    "baseUrl": "http://localhost:8080",
+    "description": "本地开发环境"
+  },
+  "environments": [
+    {
+      "name": "开发环境",
+      "variables": {
+        "baseUrl": "http://localhost:8080",
+        "token": "{{登录返回的token}}",
+        "userId": "{{登录返回的用户ID}}",
+        "adminToken": "{{管理员登录token}}"
+      }
+    },
+    {
+      "name": "测试环境", 
+      "variables": {
+        "baseUrl": "http://test.yourdomain.com",
+        "token": "{{测试环境token}}",
+        "userId": "{{测试用户ID}}"
+      }
+    }
+  ],
+  "testSuites": [
+    {
+      "name": "认证模块测试",
+      "description": "用户登录、注册、认证相关接口测试",
+      "tests": [
+        {
+          "name": "用户登录测试",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/login",
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "mode": "json",
+              "raw": {
+                "username": "testuser",
+                "password": "password123"
+              }
+            }
+          },
+          "tests": [
+            "// 验证状态码",
+            "pm.test(\"状态码为200\", function() {\n    pm.response.to.have.status(200);\n});",
+            "// 验证返回结构",
+            "pm.test(\"返回正确结构\", function() {\n    var jsonData = pm.response.json();\n    pm.expect(jsonData).to.have.property('code', 0);\n    pm.expect(jsonData).to.have.property('message');\n    pm.expect(jsonData).to.have.property('data');\n    pm.expect(jsonData.data).to.have.property('token');\n    pm.expect(jsonData.data).to.have.property('userId');\n});"
+          ]
+        },
+        {
+          "name": "用户注册测试",
+          "request": {
+            "method": "POST", 
+            "url": "{{baseUrl}}/api/auth/register",
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "mode": "json",
+              "raw": {
+                "username": "newuser_" + new Date().getTime(),
+                "password": "password123",
+                "role": "FARMER"
+              }
+            }
+          },
+          "tests": [
+            "pm.test(\"注册成功\", function() {\n    pm.response.to.have.status(200);\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.code).to.equal(0);\n    pm.expect(jsonData.data).to.be.a('number');\n});"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "用户管理模块测试",
+      "description": "用户信息管理、权限相关接口测试",
+      "tests": [
+        {
+          "name": "获取当前用户信息测试",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/user/current",
+            "headers": {
+              "Authorization": "Bearer {{token}}"
+            }
+          },
+          "tests": [
+            "pm.test(\"用户信息获取成功\", function() {\n    pm.response.to.have.status(200);\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.code).to.equal(0);\n    pm.expect(jsonData.data).to.have.property('username');\n    pm.expect(jsonData.data).to.have.property('role');\n});"
+          ]
+        },
+        {
+          "name": "修改密码测试",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/api/user/password",
+            "headers": {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer {{token}}"
+            },
+            "body": {
+              "mode": "json",
+              "raw": {
+                "oldPassword": "oldpassword",
+                "newPassword": "newpassword123"
+              }
+            }
+          },
+          "tests": [
+            "pm.test(\"密码修改成功\", function() {\n    pm.response.to.have.status(200);\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.code).to.equal(0);\n});"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "认证管理模块测试",
+      "description": "用户认证申请、审核相关接口测试",
+      "tests": [
+        {
+          "name": "提交认证申请测试",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/certification/apply",
+            "headers": {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer {{token}}"
+            },
+            "body": {
+              "mode": "json",
+              "raw": {
+                "applyType": "PERSONAL",
+                "idNumber": "123456789012345678",
+                "idCardFrontUrl": "http://example.com/front.jpg",
+                "idCardBackUrl": "http://example.com/back.jpg",
+                "applyReason": "申请农户认证"
+              }
+            }
+          },
+          "tests": [
+            "pm.test(\"认证申请提交成功\", function() {\n    pm.response.to.have.status(200);\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.code).to.equal(0);\n    pm.expect(jsonData.data).to.be.a('number');\n    \n    // 保存申请ID\n    pm.environment.set('applyId', jsonData.data);\n});"
+          ]
+        },
+        {
+          "name": "管理员审核认证申请（批准）测试",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/api/certification/{{applyId}}/approve",
+            "headers": {
+              "Authorization": "Bearer {{adminToken}}"
+            },
+            "query": {
+              "adminRemark": "审核通过"
+            }
+          },
+          "tests": [
+            "pm.test(\"认证申请批准成功\", function() {\n    pm.response.to.have.status(200);\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.code).to.equal(0);\n});"
+          ]
+        }
+      ]
+    }
+  ],
+  "dataDrivenTests": [
+    {
+      "name": "用户登录数据驱动测试",
+      "description": "测试不同用户角色的登录",
+      "data": [
+        {
+          "username": "admin",
+          "password": "admin123",
+          "expectedRole": "ADMIN"
+        },
+        {
+          "username": "farmer1", 
+          "password": "farmer123",
+          "expectedRole": "FARMER"
+        },
+        {
+          "username": "purchaser1",
+          "password": "purchaser123", 
+          "expectedRole": "PURCHASER"
+        }
+      ],
+      "testTemplate": {
+        "request": {
+          "method": "POST",
+          "url": "{{baseUrl}}/api/auth/login",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "mode": "json",
+            "raw": {
+              "username": "{{username}}",
+              "password": "{{password}}"
+            }
+          }
+        },
+        "tests": [
+          "pm.test(\"状态码为200\", function() {\n    pm.response.to.have.status(200);\n});",
+          "pm.test(\"角色匹配\", function() {\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.data.role).to.equal(data.expectedRole);\n});"
+        ]
+      }
+    }
+  ],
+  "testScripts": {
+    "preRequest": "// 请求前执行的脚本\nconsole.log('开始执行请求: ' + pm.request.url);",
+    "postResponse": "// 响应后执行的通用脚本\nif (pm.response.code === 200) {\n    console.log('请求成功');\n} else {\n    console.log('请求失败，状态码: ' + pm.response.code);\n}"
+  },
+  "apiCollections": [
+    {
+      "name": "认证相关接口",
+      "apis": [
+        {
+          "name": "用户登录",
+          "method": "POST",
+          "url": "/api/auth/login"
+        },
+        {
+          "name": "用户注册", 
+          "method": "POST",
+          "url": "/api/auth/register"
+        }
+      ]
+    },
+    {
+      "name": "用户管理接口",
+      "apis": [
+        {
+          "name": "获取当前用户信息",
+          "method": "GET", 
+          "url": "/api/user/current"
+        },
+        {
+          "name": "修改密码",
+          "method": "PUT",
+          "url": "/api/user/password"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,99 @@
+{
+  "testData": {
+    "users": {
+      "admin": {
+        "username": "admin",
+        "password": "admin123",
+        "role": "ADMIN"
+      },
+      "farmer": {
+        "username": "farmer1",
+        "password": "farmer123",
+        "role": "FARMER",
+        "contactPerson": "张三",
+        "contactPhone": "13800138000",
+        "contactEmail": "farmer@example.com"
+      },
+      "purchaser": {
+        "username": "purchaser1",
+        "password": "purchaser123",
+        "role": "PURCHASER",
+        "contactPerson": "李四",
+        "contactPhone": "13900139000",
+        "contactEmail": "purchaser@example.com"
+      }
+    },
+    "certification": {
+      "personal": {
+        "applyType": "PERSONAL",
+        "idNumber": "110101199001010001",
+        "idCardFrontUrl": "https://example.com/front.jpg",
+        "idCardBackUrl": "https://example.com/back.jpg",
+        "applyReason": "申请个人农户认证"
+      },
+      "enterprise": {
+        "applyType": "ENTERPRISE",
+        "businessLicenseUrl": "https://example.com/license.jpg",
+        "legalRepresentative": "王五",
+        "applyReason": "申请企业采购方认证"
+      }
+    },
+    "farmerInfo": {
+      "farmName": "绿色生态农场",
+      "farmAddress": "北京市朝阳区",
+      "farmArea": 100,
+      "mainProduct": "有机蔬菜",
+      "annualOutput": 5000,
+      "certification": "有机认证"
+    },
+    "purchaserInfo": {
+      "companyName": "优质农产品采购公司",
+      "companyAddress": "上海市浦东新区",
+      "businessScope": "农产品采购与销售",
+      "purchaseVolume": 10000,
+      "contactPerson": "采购经理",
+      "contactPhone": "13800138001"
+    },
+    "logistics": {
+      "logisticsCompany": "顺丰速运",
+      "trackingNo": "SF1234567890",
+      "transportType": "EXPRESS",
+      "departureTime": "2024-01-01 10:00:00"
+    },
+    "originArea": {
+      "areaCode": "BJ001",
+      "areaName": "北京朝阳农业示范区",
+      "province": "北京市",
+      "city": "北京市",
+      "feature": "有机蔬菜种植基地",
+      "isPovertyArea": false
+    }
+  },
+  "mockResponses": {
+    "loginSuccess": {
+      "code": 0,
+      "message": "登录成功",
+      "data": {
+        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+        "userId": 1,
+        "username": "testuser",
+        "role": "FARMER"
+      }
+    },
+    "registerSuccess": {
+      "code": 0,
+      "message": "注册成功",
+      "data": 123
+    },
+    "certificationApplySuccess": {
+      "code": 0,
+      "message": "认证申请提交成功",
+      "data": 456
+    },
+    "success": {
+      "code": 0,
+      "message": "操作成功",
+      "data": null
+    }
+  }
+}

@@ -1,0 +1,257 @@
+package cn.aspes.agri.trade.converter;
+
+import cn.aspes.agri.trade.entity.*;
+import cn.aspes.agri.trade.vo.*;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
+import org.springframework.stereotype.Component;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * Entity到VO转换器 - 使用ModelMapper
+ */
+@Component
+@RequiredArgsConstructor
+public class EntityVOConverter {
+    
+    private final ModelMapper modelMapper;
+    
+    // ============== User转换 ==============
+    
+    public UserVO toUserVO(User user) {
+        if (user == null) {
+            return null;
+        }
+        return modelMapper.map(user, UserVO.class);
+    }
+    
+    public List<UserVO> toUserVOList(List<User> users) {
+        if (users == null || users.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return users.stream()
+                .map(this::toUserVO)
+                .collect(Collectors.toList());
+    }
+    
+    public IPage<UserVO> toUserVOPage(IPage<User> page) {
+        if (page == null) {
+            return null;
+        }
+        IPage<UserVO> result = new Page<>(page.getCurrent(), page.getSize(), page.getTotal());
+        result.setRecords(toUserVOList(page.getRecords()));
+        return result;
+    }
+    
+    // ============== FarmerProduct转换 ==============
+    
+    public FarmerProductVO toFarmerProductVO(FarmerProduct product) {
+        if (product == null) {
+            return null;
+        }
+        return modelMapper.map(product, FarmerProductVO.class);
+    }
+    
+    public List<FarmerProductVO> toFarmerProductVOList(List<FarmerProduct> products) {
+        if (products == null || products.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return products.stream()
+                .map(this::toFarmerProductVO)
+                .collect(Collectors.toList());
+    }
+    
+    public IPage<FarmerProductVO> toFarmerProductVOPage(IPage<FarmerProduct> page) {
+        if (page == null) {
+            return null;
+        }
+        IPage<FarmerProductVO> result = new Page<>(page.getCurrent(), page.getSize(), page.getTotal());
+        result.setRecords(toFarmerProductVOList(page.getRecords()));
+        return result;
+    }
+    
+    // ============== PurchaseDemand转换 ==============
+    
+    public PurchaseDemandVO toPurchaseDemandVO(PurchaseDemand demand) {
+        if (demand == null) {
+            return null;
+        }
+        return modelMapper.map(demand, PurchaseDemandVO.class);
+    }
+    
+    public List<PurchaseDemandVO> toPurchaseDemandVOList(List<PurchaseDemand> demands) {
+        if (demands == null || demands.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return demands.stream()
+                .map(this::toPurchaseDemandVO)
+                .collect(Collectors.toList());
+    }
+    
+    public IPage<PurchaseDemandVO> toPurchaseDemandVOPage(IPage<PurchaseDemand> page) {
+        if (page == null) {
+            return null;
+        }
+        IPage<PurchaseDemandVO> result = new Page<>(page.getCurrent(), page.getSize(), page.getTotal());
+        result.setRecords(toPurchaseDemandVOList(page.getRecords()));
+        return result;
+    }
+    
+    // ============== DockingRecord转换 ==============
+    
+    public DockingRecordVO toDockingRecordVO(DockingRecord record) {
+        if (record == null) {
+            return null;
+        }
+        return modelMapper.map(record, DockingRecordVO.class);
+    }
+    
+    public List<DockingRecordVO> toDockingRecordVOList(List<DockingRecord> records) {
+        if (records == null || records.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return records.stream()
+                .map(this::toDockingRecordVO)
+                .collect(Collectors.toList());
+    }
+    
+    public IPage<DockingRecordVO> toDockingRecordVOPage(IPage<DockingRecord> page) {
+        if (page == null) {
+            return null;
+        }
+        IPage<DockingRecordVO> result = new Page<>(page.getCurrent(), page.getSize(), page.getTotal());
+        result.setRecords(toDockingRecordVOList(page.getRecords()));
+        return result;
+    }
+    
+    // ============== PurchaseContract转换 ==============
+    
+    public PurchaseContractVO toPurchaseContractVO(PurchaseContract contract) {
+        if (contract == null) {
+            return null;
+        }
+        return modelMapper.map(contract, PurchaseContractVO.class);
+    }
+    
+    public List<PurchaseContractVO> toPurchaseContractVOList(List<PurchaseContract> contracts) {
+        if (contracts == null || contracts.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return contracts.stream()
+                .map(this::toPurchaseContractVO)
+                .collect(Collectors.toList());
+    }
+    
+    public IPage<PurchaseContractVO> toPurchaseContractVOPage(IPage<PurchaseContract> page) {
+        if (page == null) {
+            return null;
+        }
+        IPage<PurchaseContractVO> result = new Page<>(page.getCurrent(), page.getSize(), page.getTotal());
+        result.setRecords(toPurchaseContractVOList(page.getRecords()));
+        return result;
+    }
+    
+    // ============== PurchaseOrder转换 ==============
+    
+    public PurchaseOrderVO toPurchaseOrderVO(PurchaseOrder order) {
+        if (order == null) {
+            return null;
+        }
+        return modelMapper.map(order, PurchaseOrderVO.class);
+    }
+    
+    public List<PurchaseOrderVO> toPurchaseOrderVOList(List<PurchaseOrder> orders) {
+        if (orders == null || orders.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return orders.stream()
+                .map(this::toPurchaseOrderVO)
+                .collect(Collectors.toList());
+    }
+    
+    public IPage<PurchaseOrderVO> toPurchaseOrderVOPage(IPage<PurchaseOrder> page) {
+        if (page == null) {
+            return null;
+        }
+        IPage<PurchaseOrderVO> result = new Page<>(page.getCurrent(), page.getSize(), page.getTotal());
+        result.setRecords(toPurchaseOrderVOList(page.getRecords()));
+        return result;
+    }
+    
+    // ============== PaymentRecord转换 ==============
+    
+    public PaymentRecordVO toPaymentRecordVO(PaymentRecord record) {
+        if (record == null) {
+            return null;
+        }
+        return modelMapper.map(record, PaymentRecordVO.class);
+    }
+    
+    public List<PaymentRecordVO> toPaymentRecordVOList(List<PaymentRecord> records) {
+        if (records == null || records.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return records.stream()
+                .map(this::toPaymentRecordVO)
+                .collect(Collectors.toList());
+    }
+    
+    public IPage<PaymentRecordVO> toPaymentRecordVOPage(IPage<PaymentRecord> page) {
+        if (page == null) {
+            return null;
+        }
+        IPage<PaymentRecordVO> result = new Page<>(page.getCurrent(), page.getSize(), page.getTotal());
+        result.setRecords(toPaymentRecordVOList(page.getRecords()));
+        return result;
+    }
+    
+    // ============== LogisticsRecord转换 ==============
+    
+    public LogisticsVO toLogisticsVO(LogisticsRecord record) {
+        if (record == null) {
+            return null;
+        }
+        return modelMapper.map(record, LogisticsVO.class);
+    }
+    
+    public List<LogisticsVO> toLogisticsVOList(List<LogisticsRecord> records) {
+        if (records == null || records.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return records.stream()
+                .map(this::toLogisticsVO)
+                .collect(Collectors.toList());
+    }
+    
+    public IPage<LogisticsVO> toLogisticsVOPage(IPage<LogisticsRecord> page) {
+        if (page == null) {
+            return null;
+        }
+        IPage<LogisticsVO> result = new Page<>(page.getCurrent(), page.getSize(), page.getTotal());
+        result.setRecords(toLogisticsVOList(page.getRecords()));
+        return result;
+    }
+    
+    // ============== LogisticsTrace转换 ==============
+    
+    public LogisticsTraceVO toLogisticsTraceVO(LogisticsTrace trace) {
+        if (trace == null) {
+            return null;
+        }
+        return modelMapper.map(trace, LogisticsTraceVO.class);
+    }
+    
+    public List<LogisticsTraceVO> toLogisticsTraceVOList(List<LogisticsTrace> traces) {
+        if (traces == null || traces.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return traces.stream()
+                .map(this::toLogisticsTraceVO)
+                .collect(Collectors.toList());
+    }
+}
