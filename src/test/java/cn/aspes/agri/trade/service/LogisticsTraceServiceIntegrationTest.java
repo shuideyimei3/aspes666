@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * 物流轨迹服务集成测试
  */
-@SpringBootTest
+@SpringBootTest(classes = cn.aspes.agri.trade.AgriTradePlatformApplication.class)
 @ActiveProfiles("test")
 @Transactional
 class LogisticsTraceServiceIntegrationTest {

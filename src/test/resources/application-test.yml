@@ -3,23 +3,21 @@ server:
 
 spring:
   application:
-    name: agri-trade-platform
-  
+    name: agri-trade-platform-test
+
   # 使用 H2 内存数据库进行测试
   datasource:
     driver-class-name: org.h2.Driver
-    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;DATABASE_TO_LOWER=FALSE;CASE_INSENSITIVE_IDENTIFIERS=TRUE
+    url: jdbc:h2:mem:test;MODE=MYSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     username: sa
     password: 
     # SQL初始化配置
-    sql:
-      init:
-        mode: always
-        continue-on-error: false
-        schema-locations: classpath:test-schema.sql
-        data-locations: classpath:test-data.sql
-  
-  # Redis配置 (使用嵌入式Redis)
+    initialization-mode: always
+    continue-on-error: true
+    schema-locations: classpath:schema-h2.sql
+    data-locations: classpath:test-data.sql
+
+  # Redis配置 (本地测试配置)
   data:
     redis:
       host: localhost
@@ -33,7 +31,7 @@ spring:
           max-wait: -1ms
           max-idle: 8
           min-idle: 0
-  
+
   # 文件上传配置
   servlet:
     multipart:
@@ -61,7 +59,7 @@ jwt:
   secret: aspes-agri-trade-platform-jwt-secret-key-2024
   expiration: 86400000  # 24小时（毫秒）
 
-# 阿里云OSS配置
+# 阿里云OSS配置 (测试使用mock值)
 aliyun:
   oss:
     endpoint: oss-cn-beijing.aliyuncs.com
@@ -82,3 +80,4 @@ logging:
     root: INFO
     cn.aspes.agri.trade: DEBUG
     org.springframework.security: DEBUG
+    org.springframework.web: DEBUG

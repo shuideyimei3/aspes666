@@ -5,18 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5247a8c9-eb44-46b9-a6e5-f92c5d80abd5" name="更改" comment="1">
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cn/aspes/agri/trade/entity/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cn/aspes/agri/trade/entity/User.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/cn/aspes/agri/trade/config/TestDatabaseConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/cn/aspes/agri/trade/config/TestDatabaseConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/cn/aspes/agri/trade/service/ContractIntegrationTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/cn/aspes/agri/trade/service/ContractIntegrationTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/cn/aspes/agri/trade/service/FarmerProductIntegrationTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/cn/aspes/agri/trade/service/FarmerProductIntegrationTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/cn/aspes/agri/trade/service/LogisticsIntegrationTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/cn/aspes/agri/trade/service/LogisticsIntegrationTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/cn/aspes/agri/trade/service/PaymentIntegrationTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/cn/aspes/agri/trade/service/PaymentIntegrationTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/cn/aspes/agri/trade/service/PurchaseOrderIntegrationTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/cn/aspes/agri/trade/service/PurchaseOrderIntegrationTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/cn/aspes/agri/trade/service/UserServiceIntegrationTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/cn/aspes/agri/trade/service/UserServiceIntegrationTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/resources/application-test.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/resources/application-test.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/resources/schema-h2.sql" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/resources/schema-h2.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/resources/test-schema.sql" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/resources/test-schema.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/cn/aspes/agri/trade/service/LogisticsRecordServiceIntegrationTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/cn/aspes/agri/trade/service/LogisticsRecordServiceIntegrationTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -42,7 +31,7 @@
 }</component>
   <component name="GithubPullRequestsUISettings"><![CDATA[{
   "selectedUrlAndAccountId": {
-    "url": "https://github.com/shuideyimei3/aspes3.git",
+    "url": "https://github.com/shuideyimei3/aspes666.git",
     "accountId": "10b61fc0-9959-4c96-ba21-e668a2836a38"
   }
 }]]></component>
@@ -125,7 +114,7 @@
       <workItem from="1762951362004" duration="150000" />
       <workItem from="1762951522847" duration="36842000" />
       <workItem from="1763047949978" duration="1450000" />
-      <workItem from="1763049411188" duration="1447000" />
+      <workItem from="1763049411188" duration="12542000" />
     </task>
     <task id="LOCAL-00001" summary="init">
       <option name="closed" value="true" />

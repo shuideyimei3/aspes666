@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * 采购需求管理服务集成测试
  */
-@SpringBootTest
+@SpringBootTest(classes = cn.aspes.agri.trade.AgriTradePlatformApplication.class)
 @ActiveProfiles("test")
 @Transactional
 class PurchaseDemandServiceIntegrationTest {
@@ -82,17 +82,15 @@ class PurchaseDemandServiceIntegrationTest {
     @DisplayName("采购方发布需求")
     void testPublishDemand() {
         PurchaseDemandRequest request = new PurchaseDemandRequest();
-        request.setTitle("采购优质水稻");
+        request.setProductName("采购优质水稻");
         request.setCategoryId(1L);
-        request.setSpec("一级大米");
+        request.setSpecRequire("一级大米");
         request.setUnit("公斤");
         request.setQuantity(1000);
         request.setPriceRange("5.00-6.00");
-        request.setDeliveryTime(LocalDate.now().plusDays(30));
+        request.setDeliveryDate(LocalDate.now().plusDays(30));
         request.setDeliveryAddress("浙江省杭州市");
-        request.setQualityStandard("符合国家一级大米标准");
-        request.setRemark("需要有机认证");
-        request.setDeadline(LocalDate.now().plusDays(15));
+        request.setQualityRequire("符合国家一级大米标准");
 
         Long demandId = purchaseDemandService.publishDemand(purchaserId, request);
         
@@ -103,17 +101,49 @@ class PurchaseDemandServiceIntegrationTest {
         PurchaseDemand demand = purchaseDemandService.getById(demandId);
         assertNotNull(demand);
         assertEquals(purchaserId, demand.getPurchaserId());
-        assertEquals("采购优质水稻", demand.getTitle());
+        assertEquals("采购优质水稻", demand.getProductName());
         assertEquals(Long.valueOf(1L), demand.getCategoryId());
-        assertEquals("一级大米", demand.getSpec());
+        assertEquals("一级大米", demand.getSpecRequire());
         assertEquals("公斤", demand.getUnit());
         assertEquals(Integer.valueOf(1000), demand.getQuantity());
         assertEquals("5.00-6.00", demand.getPriceRange());
-        assertEquals(LocalDate.now().plusDays(30), demand.getDeliveryTime());
+        assertEquals(LocalDate.now().plusDays(30), demand.getDeliveryDate());
         assertEquals("浙江省杭州市", demand.getDeliveryAddress());
-        assertEquals("符合国家一级大米标准", demand.getQualityStandard());
-        assertEquals("需要有机认证", demand.getRemark());
-        assertEquals(LocalDate.now().plusDays(15), demand.getDeadline());
+        assertEquals("符合国家一级大米标准", demand.getQualityRequire());
+        assertEquals(DemandStatus.PENDING, demand.getStatus());
+    }
+
+    @Test
+    @DisplayName("获取需求详情")
+    void testGetDemandDetail() {
+        // 先发布一个需求
+        PurchaseDemandRequest request = new PurchaseDemandRequest();
+        request.setProductName("采购优质水稻");
+        request.setCategoryId(1L);
+        request.setSpecRequire("一级大米");
+        request.setUnit("公斤");
+        request.setQuantity(1000);
+        request.setPriceRange("5.00-6.00");
+        request.setDeliveryDate(LocalDate.now().plusDays(30));
+        request.setDeliveryAddress("浙江省杭州市");
+        request.setQualityRequire("符合国家一级大米标准");
+        
+        Long demandId = purchaseDemandService.publishDemand(purchaserId, request);
+        
+        // 获取需求详情
+        PurchaseDemand demand = purchaseDemandService.getById(demandId);
+        assertNotNull(demand);
+        assertEquals(demandId, demand.getId());
+        assertEquals(purchaserId, demand.getPurchaserId());
+        assertEquals("采购优质水稻", demand.getProductName());
+        assertEquals(Long.valueOf(1L), demand.getCategoryId());
+        assertEquals("一级大米", demand.getSpecRequire());
+        assertEquals("公斤", demand.getUnit());
+        assertEquals(Integer.valueOf(1000), demand.getQuantity());
+        assertEquals("5.00-6.00", demand.getPriceRange());
+        assertEquals(LocalDate.now().plusDays(30), demand.getDeliveryDate());
+        assertEquals("浙江省杭州市", demand.getDeliveryAddress());
+        assertEquals("符合国家一级大米标准", demand.getQualityRequire());
         assertEquals(DemandStatus.PENDING, demand.getStatus());
     }
 
@@ -121,16 +151,15 @@ class PurchaseDemandServiceIntegrationTest {
     @DisplayName("不存在的采购方发布需求应失败")
     void testPublishDemandByNonExistentPurchaser() {
         PurchaseDemandRequest request = new PurchaseDemandRequest();
-        request.setTitle("测试需求");
+        request.setProductName("测试需求");
         request.setCategoryId(1L);
-        request.setSpec("规格");
+        request.setSpecRequire("规格");
         request.setUnit("公斤");
         request.setQuantity(100);
         request.setPriceRange("5.00-6.00");
-        request.setDeliveryTime(LocalDate.now().plusDays(30));
+        request.setDeliveryDate(LocalDate.now().plusDays(30));
         request.setDeliveryAddress("测试地址");
-        request.setQualityStandard("标准");
-        request.setDeadline(LocalDate.now().plusDays(15));
+        request.setQualityRequire("标准");
 
         assertThrows(BusinessException.class, () -> {
             purchaseDemandService.publishDemand(999999L, request);
@@ -142,48 +171,43 @@ class PurchaseDemandServiceIntegrationTest {
     void testUpdateDemand() {
         // 先发布需求
         PurchaseDemandRequest publishRequest = new PurchaseDemandRequest();
-        publishRequest.setTitle("原始需求");
+        publishRequest.setProductName("原始需求");
         publishRequest.setCategoryId(1L);
-        publishRequest.setSpec("原始规格");
+        publishRequest.setSpecRequire("原始规格");
         publishRequest.setUnit("公斤");
         publishRequest.setQuantity(100);
         publishRequest.setPriceRange("5.00-6.00");
-        publishRequest.setDeliveryTime(LocalDate.now().plusDays(30));
+        publishRequest.setDeliveryDate(LocalDate.now().plusDays(30));
         publishRequest.setDeliveryAddress("原始地址");
-        publishRequest.setQualityStandard("原始标准");
-        publishRequest.setDeadline(LocalDate.now().plusDays(15));
+        publishRequest.setQualityRequire("原始标准");
         
         Long demandId = purchaseDemandService.publishDemand(purchaserId, publishRequest);
         
         // 更新需求
         PurchaseDemandRequest updateRequest = new PurchaseDemandRequest();
-        updateRequest.setTitle("更新后的需求");
+        updateRequest.setProductName("更新后的需求");
         updateRequest.setCategoryId(2L);
-        updateRequest.setSpec("更新后的规格");
+        updateRequest.setSpecRequire("更新后的规格");
         updateRequest.setUnit("袋");
         updateRequest.setQuantity(200);
         updateRequest.setPriceRange("6.00-7.00");
-        updateRequest.setDeliveryTime(LocalDate.now().plusDays(45));
+        updateRequest.setDeliveryDate(LocalDate.now().plusDays(45));
         updateRequest.setDeliveryAddress("更新后的地址");
-        updateRequest.setQualityStandard("更新后的标准");
-        updateRequest.setRemark("更新后的备注");
-        updateRequest.setDeadline(LocalDate.now().plusDays(30));
+        updateRequest.setQualityRequire("更新后的标准");
         
         purchaseDemandService.updateDemand(demandId, purchaserId, updateRequest);
         
         // 验证更新结果
         PurchaseDemand demand = purchaseDemandService.getById(demandId);
-        assertEquals("更新后的需求", demand.getTitle());
+        assertEquals("更新后的需求", demand.getProductName());
         assertEquals(Long.valueOf(2L), demand.getCategoryId());
-        assertEquals("更新后的规格", demand.getSpec());
+        assertEquals("更新后的规格", demand.getSpecRequire());
         assertEquals("袋", demand.getUnit());
         assertEquals(Integer.valueOf(200), demand.getQuantity());
         assertEquals("6.00-7.00", demand.getPriceRange());
-        assertEquals(LocalDate.now().plusDays(45), demand.getDeliveryTime());
+        assertEquals(LocalDate.now().plusDays(45), demand.getDeliveryDate());
         assertEquals("更新后的地址", demand.getDeliveryAddress());
-        assertEquals("更新后的标准", demand.getQualityStandard());
-        assertEquals("更新后的备注", demand.getRemark());
-        assertEquals(LocalDate.now().plusDays(30), demand.getDeadline());
+        assertEquals("更新后的标准", demand.getQualityRequire());
     }
 
     @Test
@@ -191,24 +215,23 @@ class PurchaseDemandServiceIntegrationTest {
     void testUpdateDemandByNonOwner() {
         // 先发布需求
         PurchaseDemandRequest publishRequest = new PurchaseDemandRequest();
-        publishRequest.setTitle("测试需求");
+        publishRequest.setProductName("测试需求");
         publishRequest.setCategoryId(1L);
-        publishRequest.setSpec("规格");
+        publishRequest.setSpecRequire("规格");
         publishRequest.setUnit("公斤");
         publishRequest.setQuantity(100);
         publishRequest.setPriceRange("5.00-6.00");
-        publishRequest.setDeliveryTime(LocalDate.now().plusDays(30));
+        publishRequest.setDeliveryDate(LocalDate.now().plusDays(30));
         publishRequest.setDeliveryAddress("测试地址");
-        publishRequest.setQualityStandard("标准");
-        publishRequest.setDeadline(LocalDate.now().plusDays(15));
+        publishRequest.setQualityRequire("标准");
         
         Long demandId = purchaseDemandService.publishDemand(purchaserId, publishRequest);
         
         // 尝试用其他采购方更新需求
         PurchaseDemandRequest updateRequest = new PurchaseDemandRequest();
-        updateRequest.setTitle("被篡改的需求");
+        updateRequest.setProductName("被篡改的需求");
         updateRequest.setCategoryId(2L);
-        updateRequest.setSpec("规格");
+        updateRequest.setSpecRequire("规格");
         updateRequest.setUnit("公斤");
         updateRequest.setQuantity(50);
         updateRequest.setPriceRange("1.00-2.00");
@@ -223,16 +246,15 @@ class PurchaseDemandServiceIntegrationTest {
     void testUpdateNonPendingDemand() {
         // 先发布需求
         PurchaseDemandRequest publishRequest = new PurchaseDemandRequest();
-        publishRequest.setTitle("测试需求");
+        publishRequest.setProductName("测试需求");
         publishRequest.setCategoryId(1L);
-        publishRequest.setSpec("规格");
+        publishRequest.setSpecRequire("规格");
         publishRequest.setUnit("公斤");
         publishRequest.setQuantity(100);
         publishRequest.setPriceRange("5.00-6.00");
-        publishRequest.setDeliveryTime(LocalDate.now().plusDays(30));
+        publishRequest.setDeliveryDate(LocalDate.now().plusDays(30));
         publishRequest.setDeliveryAddress("测试地址");
-        publishRequest.setQualityStandard("标准");
-        publishRequest.setDeadline(LocalDate.now().plusDays(15));
+        publishRequest.setQualityRequire("标准");
         
         Long demandId = purchaseDemandService.publishDemand(purchaserId, publishRequest);
         
@@ -243,9 +265,9 @@ class PurchaseDemandServiceIntegrationTest {
         
         // 尝试更新已匹配的需求
         PurchaseDemandRequest updateRequest = new PurchaseDemandRequest();
-        updateRequest.setTitle("更新后的需求");
+        updateRequest.setProductName("更新后的需求");
         updateRequest.setCategoryId(2L);
-        updateRequest.setSpec("更新后的规格");
+        updateRequest.setSpecRequire("更新后的规格");
         
         assertThrows(BusinessException.class, () -> {
             purchaseDemandService.updateDemand(demandId, purchaserId, updateRequest);
@@ -257,16 +279,15 @@ class PurchaseDemandServiceIntegrationTest {
     void testCloseDemand() {
         // 先发布需求
         PurchaseDemandRequest request = new PurchaseDemandRequest();
-        request.setTitle("关闭测试需求");
+        request.setProductName("关闭测试需求");
         request.setCategoryId(1L);
-        request.setSpec("规格");
+        request.setSpecRequire("规格");
         request.setUnit("公斤");
         request.setQuantity(100);
         request.setPriceRange("5.00-6.00");
-        request.setDeliveryTime(LocalDate.now().plusDays(30));
+        request.setDeliveryDate(LocalDate.now().plusDays(30));
         request.setDeliveryAddress("测试地址");
-        request.setQualityStandard("标准");
-        request.setDeadline(LocalDate.now().plusDays(15));
+        request.setQualityRequire("标准");
         
         Long demandId = purchaseDemandService.publishDemand(purchaserId, request);
         
@@ -283,16 +304,15 @@ class PurchaseDemandServiceIntegrationTest {
     void testCloseDemandByNonOwner() {
         // 先发布需求
         PurchaseDemandRequest request = new PurchaseDemandRequest();
-        request.setTitle("关闭测试需求");
+        request.setProductName("关闭测试需求");
         request.setCategoryId(1L);
-        request.setSpec("规格");
+        request.setSpecRequire("规格");
         request.setUnit("公斤");
         request.setQuantity(100);
         request.setPriceRange("5.00-6.00");
-        request.setDeliveryTime(LocalDate.now().plusDays(30));
+        request.setDeliveryDate(LocalDate.now().plusDays(30));
         request.setDeliveryAddress("测试地址");
-        request.setQualityStandard("标准");
-        request.setDeadline(LocalDate.now().plusDays(15));
+        request.setQualityRequire("标准");
         
         Long demandId = purchaseDemandService.publishDemand(purchaserId, request);
         
@@ -308,16 +328,15 @@ class PurchaseDemandServiceIntegrationTest {
         // 创建多个需求
         for (int i = 0; i < 5; i++) {
             PurchaseDemandRequest request = new PurchaseDemandRequest();
-            request.setTitle("需求" + i);
+            request.setProductName("需求" + i);
             request.setCategoryId(i % 2 == 0 ? 1L : 2L);
-            request.setSpec("规格" + i);
+            request.setSpecRequire("规格" + i);
             request.setUnit("公斤");
             request.setQuantity(100 + i * 10);
             request.setPriceRange("5.00-6.00");
-            request.setDeliveryTime(LocalDate.now().plusDays(30));
+            request.setDeliveryDate(LocalDate.now().plusDays(30));
             request.setDeliveryAddress("测试地址" + i);
-            request.setQualityStandard("标准" + i);
-            request.setDeadline(LocalDate.now().plusDays(15));
+            request.setQualityRequire("标准" + i);
             
             purchaseDemandService.publishDemand(purchaserId, request);
         }
@@ -341,16 +360,15 @@ class PurchaseDemandServiceIntegrationTest {
         // 为当前采购方创建需求
         for (int i = 0; i < 3; i++) {
             PurchaseDemandRequest request = new PurchaseDemandRequest();
-            request.setTitle("我的需求" + i);
+            request.setProductName("我的需求" + i);
             request.setCategoryId(1L);
-            request.setSpec("规格" + i);
+            request.setSpecRequire("规格" + i);
             request.setUnit("公斤");
             request.setQuantity(100 + i * 10);
             request.setPriceRange("5.00-6.00");
-            request.setDeliveryTime(LocalDate.now().plusDays(30));
+            request.setDeliveryDate(LocalDate.now().plusDays(30));
             request.setDeliveryAddress("测试地址" + i);
-            request.setQualityStandard("标准" + i);
-            request.setDeadline(LocalDate.now().plusDays(15));
+            request.setQualityRequire("标准" + i);
             
             purchaseDemandService.publishDemand(purchaserId, request);
         }
@@ -358,16 +376,15 @@ class PurchaseDemandServiceIntegrationTest {
         // 为其他采购方创建需求
         for (int i = 0; i < 2; i++) {
             PurchaseDemandRequest request = new PurchaseDemandRequest();
-            request.setTitle("其他需求" + i);
+            request.setProductName("其他需求" + i);
             request.setCategoryId(2L);
-            request.setSpec("规格" + i);
+            request.setSpecRequire("规格" + i);
             request.setUnit("公斤");
             request.setQuantity(100 + i * 10);
             request.setPriceRange("5.00-6.00");
-            request.setDeliveryTime(LocalDate.now().plusDays(30));
+            request.setDeliveryDate(LocalDate.now().plusDays(30));
             request.setDeliveryAddress("其他地址" + i);
-            request.setQualityStandard("其他标准" + i);
-            request.setDeadline(LocalDate.now().plusDays(15));
+            request.setQualityRequire("其他标准" + i);
             
             purchaseDemandService.publishDemand(otherPurchaserId, request);
         }
@@ -380,5 +397,78 @@ class PurchaseDemandServiceIntegrationTest {
         for (PurchaseDemand demand : myDemands.getRecords()) {
             assertEquals(purchaserId, demand.getPurchaserId());
         }
+    }
+
+    @Test
+    @DisplayName("按分类获取需求列表")
+    void testGetDemandsByCategory() {
+        // 发布不同分类的需求
+        for (int i = 1; i <= 5; i++) {
+            PurchaseDemandRequest request = new PurchaseDemandRequest();
+            request.setProductName("采购优质水稻" + i);
+            request.setCategoryId(1L);
+            request.setSpecRequire("一级大米");
+            request.setUnit("公斤");
+            request.setQuantity(1000 * i);
+            request.setPriceRange("5.00-6.00");
+            request.setDeliveryDate(LocalDate.now().plusDays(30 + i));
+            request.setDeliveryAddress("浙江省杭州市");
+            request.setQualityRequire("符合国家一级大米标准");
+            
+            purchaseDemandService.publishDemand(purchaserId, request);
+        }
+        
+        for (int i = 1; i <= 3; i++) {
+            PurchaseDemandRequest request = new PurchaseDemandRequest();
+            request.setProductName("采购优质小麦" + i);
+            request.setCategoryId(2L);
+            request.setSpecRequire("一级小麦");
+            request.setUnit("公斤");
+            request.setQuantity(2000 * i);
+            request.setPriceRange("3.00-4.00");
+            request.setDeliveryDate(LocalDate.now().plusDays(30 + i));
+            request.setDeliveryAddress("浙江省宁波市");
+            request.setQualityRequire("符合国家一级小麦标准");
+            
+            purchaseDemandService.publishDemand(purchaserId, request);
+        }
+        
+        // 获取分类1的需求列表
+        List<PurchaseDemand> category1Demands = purchaseDemandService.getDemandsByCategory(1L);
+        assertNotNull(category1Demands);
+        assertTrue(category1Demands.size() >= 5);
+        
+        // 验证分类1的需求信息
+        category1Demands.forEach(demand -> {
+            assertEquals(Long.valueOf(1L), demand.getCategoryId());
+            assertNotNull(demand.getProductName());
+            assertNotNull(demand.getSpecRequire());
+            assertNotNull(demand.getUnit());
+            assertTrue(demand.getQuantity() > 0);
+            assertNotNull(demand.getPriceRange());
+            assertNotNull(demand.getDeliveryDate());
+            assertNotNull(demand.getDeliveryAddress());
+            assertNotNull(demand.getQualityRequire());
+            assertNotNull(demand.getStatus());
+        });
+        
+        // 获取分类2的需求列表
+        List<PurchaseDemand> category2Demands = purchaseDemandService.getDemandsByCategory(2L);
+        assertNotNull(category2Demands);
+        assertTrue(category2Demands.size() >= 3);
+        
+        // 验证分类2的需求信息
+        category2Demands.forEach(demand -> {
+            assertEquals(Long.valueOf(2L), demand.getCategoryId());
+            assertNotNull(demand.getProductName());
+            assertNotNull(demand.getSpecRequire());
+            assertNotNull(demand.getUnit());
+            assertTrue(demand.getQuantity() > 0);
+            assertNotNull(demand.getPriceRange());
+            assertNotNull(demand.getDeliveryDate());
+            assertNotNull(demand.getDeliveryAddress());
+            assertNotNull(demand.getQualityRequire());
+            assertNotNull(demand.getStatus());
+        });
     }
 }

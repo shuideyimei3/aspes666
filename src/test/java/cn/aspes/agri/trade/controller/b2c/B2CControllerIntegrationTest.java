@@ -1,6 +1,6 @@
 package cn.aspes.agri.trade.controller.b2c;
 
-import cn.aspes.agri.trade.TestApplication;
+import cn.aspes.agri.trade.AgriTradePlatformApplication;
 import cn.aspes.agri.trade.common.Result;
 import cn.aspes.agri.trade.dto.FarmerInfoRequest;
 import cn.aspes.agri.trade.dto.FarmerProductRequest;
@@ -44,7 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * B2C控制器集成测试
  */
-@SpringBootTest(classes = TestApplication.class)
+@SpringBootTest(classes = AgriTradePlatformApplication.class)
 @AutoConfigureWebMvc
 @ActiveProfiles("test")
 @Transactional

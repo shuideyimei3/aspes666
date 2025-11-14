@@ -42,9 +42,18 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/common/auth/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        // 允许无认证访问的路径
+                        .requestMatchers(
+                                "/api/common/auth/**",           // 认证接口（登录、注册）
+                                "/swagger-ui/**",                // Swagger UI
+                                "/v3/api-docs/**",               // API文档
+                                "/actuator/health",              // 健康检查
+                                "/favicon.ico"                   // favicon
+                        ).permitAll()
+                        // 其他请求需要认证
                         .anyRequest().authenticated()
                 )
+                .cors(cors -> {}) // 启用CORS支持，会使用WebConfig中的配置
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         
         return http.build();

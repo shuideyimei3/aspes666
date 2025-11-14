@@ -31,7 +31,7 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
+@SpringBootTest(classes = cn.aspes.agri.trade.AgriTradePlatformApplication.class)
 @AutoConfigureWebMvc
 @ActiveProfiles("test")
 @Transactional
@@ -66,7 +66,7 @@ public class SharedControllerIntegrationTest {
     private ProductCategoryService productCategoryService;
     
     @Autowired
-    private ProductService productService;
+    private FarmerProductService farmerProductService;
     
     @Autowired
     private ProductImageService productImageService;
@@ -84,7 +84,7 @@ public class SharedControllerIntegrationTest {
     private PurchaserInfo purchaserInfo;
     private OriginArea originArea;
     private ProductCategory productCategory;
-    private Product product;
+    private FarmerProduct product;
     private ProductImage productImage;
     private PurchaseDemand purchaseDemand;
     private DockingRecord dockingRecord;
@@ -165,8 +165,8 @@ public class SharedControllerIntegrationTest {
         productCategoryService.save(productCategory);
         
         // 创建产品
-        product = new Product();
-        product.setFarmerId(farmerInfo.getId());
+        product = new FarmerProduct();
+        product.setFarmerId(farmerUser.getId());
         product.setCategoryId(productCategory.getId());
         product.setName("白菜");
         product.setDescription("新鲜白菜");
@@ -175,7 +175,7 @@ public class SharedControllerIntegrationTest {
         product.setUnit("斤");
         product.setOriginAreaId(originArea.getId());
         product.setStatus("ON_SALE");
-        productService.save(product);
+        farmerProductService.save(product);
         
         // 创建产品图片
         productImage = new ProductImage();

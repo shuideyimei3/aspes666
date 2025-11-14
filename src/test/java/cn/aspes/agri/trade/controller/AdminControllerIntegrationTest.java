@@ -25,7 +25,7 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
+@SpringBootTest(classes = cn.aspes.agri.trade.AgriTradePlatformApplication.class)
 @AutoConfigureWebMvc
 @ActiveProfiles("test")
 @Transactional

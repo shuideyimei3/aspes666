@@ -1,6 +1,6 @@
 package cn.aspes.agri.trade.controller.b2b;
 
-import cn.aspes.agri.trade.TestApplication;
+import cn.aspes.agri.trade.AgriTradePlatformApplication;
 import cn.aspes.agri.trade.common.Result;
 import cn.aspes.agri.trade.dto.ContractRequest;
 import cn.aspes.agri.trade.dto.PaymentRequest;
@@ -45,7 +45,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * B2B控制器集成测试
  */
-@SpringBootTest(classes = TestApplication.class)
+@SpringBootTest(classes = AgriTradePlatformApplication.class)
 @AutoConfigureWebMvc
 @ActiveProfiles("test")
 @Transactional
@@ -478,9 +478,9 @@ class B2BControllerIntegrationTest {
         cn.aspes.agri.trade.dto.DockingRecordRequest dockingRequest = new cn.aspes.agri.trade.dto.DockingRecordRequest();
         dockingRequest.setDemandId(demandId);
         dockingRequest.setProductId(productId);
-        dockingRequest.setQuantity(200);
-        dockingRequest.setPrice(new BigDecimal("18.00"));
-        dockingRequest.setDeliveryTime("2024-06-20");
+        dockingRequest.setCanSupply(200);
+        dockingRequest.setQuotePrice(new BigDecimal("18.00"));
+        dockingRequest.setSupplyTime(LocalDate.of(2024, 6, 20));
         dockingRequest.setRemark("测试对接3");
         Long newDockingId = dockingRecordService.respondToDemand(farmerId, dockingRequest);
 

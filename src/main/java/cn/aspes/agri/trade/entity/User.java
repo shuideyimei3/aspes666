@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
  * 用户实体类
  */
 @Data
-@TableName("\"user\"")
+@TableName("user")
 public class User {
     
     @TableId(type = IdType.ASSIGN_ID)
