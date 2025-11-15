@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,6 +40,14 @@ public class PurchaserInfoController {
         if (purchaserInfo == null) {
             throw new BusinessException("采购方信息不存在");
         }
+        return Result.success(purchaserInfo);
+    }
+    
+    @Operation(summary = "获取当前用户的采购方信息")
+    @GetMapping("/my")
+    @PreAuthorize("hasRole('PURCHASER')")
+    public Result<PurchaserInfo> getMyInfo(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        PurchaserInfo purchaserInfo = purchaserInfoService.getByUserId(userDetails.getId());
         return Result.success(purchaserInfo);
     }
     

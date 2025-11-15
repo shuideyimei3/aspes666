@@ -696,6 +696,20 @@ class B2BControllerIntegrationTest {
     }
 
     @Test
+    @WithMockUser(roles = {"PURCHASER"})
+    void testGetMyPurchaserInfo() throws Exception {
+        CustomUserDetails userDetails = new CustomUserDetails(
+                purchaserUserId, "purchaser", "password", UserRole.PURCHASER, true);
+
+        mockMvc.perform(get("/api/b2b/purchaser-info/my")
+                        .with(user(userDetails)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.id").value(purchaserId))
+                .andExpect(jsonPath("$.data.companyName").value("测试采购公司"));
+    }
+
+    @Test
     void testUpdatePurchaserInfo() throws Exception {
         PurchaserInfoRequest request = new PurchaserInfoRequest();
         request.setCompanyName("更新后的采购公司");

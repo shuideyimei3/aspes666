@@ -26,6 +26,11 @@ public interface PurchaseDemandService extends IService<PurchaseDemand> {
     void closeDemand(Long demandId, Long purchaserId);
     
     /**
+     * 开启需求
+     */
+    void openDemand(Long demandId, Long purchaserId);
+    
+    /**
      * 分页查询需求列表（公开）
      */
     IPage<PurchaseDemand> listDemands(int pageNum, int pageSize, Long categoryId, String status);

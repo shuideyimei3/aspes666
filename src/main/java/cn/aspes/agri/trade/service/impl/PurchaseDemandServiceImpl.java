@@ -85,6 +85,26 @@ public class PurchaseDemandServiceImpl extends ServiceImpl<PurchaseDemandMapper,
     }
     
     @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void openDemand(Long demandId, Long purchaserId) {
+        PurchaseDemand demand = getById(demandId);
+        if (demand == null) {
+            throw new BusinessException("采购需求不存在");
+        }
+        
+        if (!demand.getPurchaserId().equals(purchaserId)) {
+            throw new BusinessException("无权开启该需求");
+        }
+        
+        if (demand.getStatus() != DemandStatus.CLOSED) {
+            throw new BusinessException("只能开启已关闭状态的需求");
+        }
+        
+        demand.setStatus(DemandStatus.PENDING);
+        updateById(demand);
+    }
+    
+    @Override
     public IPage<PurchaseDemand> listDemands(int pageNum, int pageSize, Long categoryId, String status) {
         Page<PurchaseDemand> page = new Page<>(pageNum, pageSize);
         LambdaQueryWrapper<PurchaseDemand> wrapper = new LambdaQueryWrapper<>();

@@ -65,6 +65,16 @@ public class PurchaseDemandController {
         return Result.success();
     }
     
+    @Operation(summary = "开启需求")
+    @PutMapping("/{demandId}/open")
+    @PreAuthorize("hasRole('PURCHASER')")
+    public Result<Void> openDemand(@PathVariable Long demandId,
+                                   @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long purchaserId = purchaserInfoService.getByUserId(userDetails.getId()).getId();
+        purchaseDemandService.openDemand(demandId, purchaserId);
+        return Result.success();
+    }
+    
     @Operation(summary = "查询需求列表")
     @GetMapping
     public Result<IPage<PurchaseDemandVO>> listDemands(@RequestParam(defaultValue = "1") int pageNum,
