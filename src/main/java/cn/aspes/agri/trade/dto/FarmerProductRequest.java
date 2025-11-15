@@ -1,5 +1,6 @@
 package cn.aspes.agri.trade.dto;
 
+import cn.aspes.agri.trade.dto.ProductImageRequest;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -51,6 +52,6 @@ public class FarmerProductRequest {
     
     private String description;
     
-    // 产品图片，新增时需要至少一张，修改时可选
-    private List<MultipartFile> productImages;
+    // 产品图片详细信息（包含类型和排序）
+    private List<ProductImageRequest> productImageDetails;
 }

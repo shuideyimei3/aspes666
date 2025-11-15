@@ -1,5 +1,6 @@
 package cn.aspes.agri.trade.vo;
 
+import cn.aspes.agri.trade.dto.ProductImageDTO;
 import cn.aspes.agri.trade.enums.ProductStatus;
 import lombok.Data;
 
@@ -50,7 +51,7 @@ public class FarmerProductVO {
     
     private ProductStatus status;
     
-    private List<String> images;  // 产品图片列表
+    private List<ProductImageDTO> images;  // 产品图片列表
     
     private LocalDateTime createTime;
 }

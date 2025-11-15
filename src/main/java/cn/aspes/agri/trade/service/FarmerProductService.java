@@ -2,6 +2,7 @@ package cn.aspes.agri.trade.service;
 
 import cn.aspes.agri.trade.dto.FarmerProductRequest;
 import cn.aspes.agri.trade.entity.FarmerProduct;
+import cn.aspes.agri.trade.vo.FarmerProductVO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -39,4 +40,24 @@ public interface FarmerProductService extends IService<FarmerProduct> {
      * 查询我的产品列表
      */
     IPage<FarmerProduct> listMyProducts(Long farmerId, int pageNum, int pageSize);
+    
+    /**
+     * 分页查询产品列表（包含图片信息）
+     */
+    IPage<FarmerProductVO> listProductsWithImages(int pageNum, int pageSize, Long categoryId, Integer originAreaId, String status);
+    
+    /**
+     * 查询我的产品列表（包含图片信息）
+     */
+    IPage<FarmerProductVO> listMyProductsWithImages(Long farmerId, int pageNum, int pageSize);
+    
+    /**
+     * 根据ID查询产品详情（包含图片信息）
+     */
+    FarmerProductVO getProductWithImagesById(Long productId);
+    
+    /**
+     * 验证产品是否属于指定农户
+     */
+    boolean isProductOwner(Long productId, Long farmerId);
 }

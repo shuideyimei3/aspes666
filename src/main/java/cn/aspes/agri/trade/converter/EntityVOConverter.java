@@ -1,6 +1,8 @@
 package cn.aspes.agri.trade.converter;
 
+import cn.aspes.agri.trade.dto.ProductImageDTO;
 import cn.aspes.agri.trade.entity.*;
+import cn.aspes.agri.trade.service.ProductImageService;
 import cn.aspes.agri.trade.vo.*;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -20,6 +22,7 @@ import java.util.stream.Collectors;
 public class EntityVOConverter {
     
     private final ModelMapper modelMapper;
+    private final ProductImageService productImageService;
     
     // ============== User转换 ==============
     
@@ -54,7 +57,27 @@ public class EntityVOConverter {
         if (product == null) {
             return null;
         }
-        return modelMapper.map(product, FarmerProductVO.class);
+        FarmerProductVO vo = modelMapper.map(product, FarmerProductVO.class);
+        
+        // 查询并设置产品图片
+        List<ProductImage> images = productImageService.listByProductId(product.getId());
+        if (images != null && !images.isEmpty()) {
+            List<ProductImageDTO> imageDTOs = images.stream()
+                    .sorted((a, b) -> a.getSort() != null && b.getSort() != null ? a.getSort().compareTo(b.getSort()) : 0)
+                    .map(image -> {
+                        ProductImageDTO dto = new ProductImageDTO();
+                        dto.setUrl(image.getImageUrl());
+                        dto.setImageType(image.getImageType());
+                        dto.setSort(image.getSort());
+                        return dto;
+                    })
+                    .collect(Collectors.toList());
+            vo.setImages(imageDTOs);
+        } else {
+            vo.setImages(Collections.emptyList());
+        }
+        
+        return vo;
     }
     
     public List<FarmerProductVO> toFarmerProductVOList(List<FarmerProduct> products) {

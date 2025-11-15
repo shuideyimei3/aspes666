@@ -1,14 +1,19 @@
 package cn.aspes.agri.trade.service.impl;
 
+import cn.aspes.agri.trade.dto.ProductImageRequest;
 import cn.aspes.agri.trade.entity.ProductImage;
 import cn.aspes.agri.trade.enums.ProductImageType;
 import cn.aspes.agri.trade.mapper.ProductImageMapper;
+import cn.aspes.agri.trade.service.FileUploadService;
 import cn.aspes.agri.trade.service.ProductImageService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
+import jakarta.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,6 +22,9 @@ import java.util.List;
  */
 @Service
 public class ProductImageServiceImpl extends ServiceImpl<ProductImageMapper, ProductImage> implements ProductImageService {
+    
+    @Resource
+    private FileUploadService fileUploadService;
     
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -38,6 +46,43 @@ public class ProductImageServiceImpl extends ServiceImpl<ProductImageMapper, Pro
         }
         
         saveBatch(images);
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void saveProductImages(Long productId, List<ProductImageRequest> imageRequests) {
+        if (imageRequests == null || imageRequests.isEmpty()) {
+            return;
+        }
+        
+        List<ProductImage> images = new ArrayList<>();
+        
+        for (int i = 0; i < imageRequests.size(); i++) {
+            ProductImageRequest request = imageRequests.get(i);
+            MultipartFile file = request.getFile();
+            
+            if (file != null && !file.isEmpty()) {
+                String imageUrl = fileUploadService.uploadProductImage(file);
+                
+                ProductImage image = new ProductImage();
+                image.setProductId(productId);
+                image.setImageUrl(imageUrl);
+                image.setImageType(request.getImageType());
+                
+                // 如果没有指定排序，则使用索引作为默认排序
+                Integer sort = request.getSort();
+                if (sort == null) {
+                    sort = i;
+                }
+                image.setSort(sort);
+                
+                images.add(image);
+            }
+        }
+        
+        if (!images.isEmpty()) {
+            saveBatch(images);
+        }
     }
     
     @Override

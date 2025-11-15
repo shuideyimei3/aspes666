@@ -1,5 +1,6 @@
 package cn.aspes.agri.trade.service.impl;
 
+import cn.aspes.agri.trade.converter.EntityVOConverter;
 import cn.aspes.agri.trade.dto.FarmerProductRequest;
 import cn.aspes.agri.trade.entity.FarmerProduct;
 import cn.aspes.agri.trade.entity.StockReservation;
@@ -10,6 +11,7 @@ import cn.aspes.agri.trade.mapper.StockReservationMapper;
 import cn.aspes.agri.trade.service.FarmerProductService;
 import cn.aspes.agri.trade.service.FileUploadService;
 import cn.aspes.agri.trade.service.ProductImageService;
+import cn.aspes.agri.trade.vo.FarmerProductVO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -39,11 +41,16 @@ public class FarmerProductServiceImpl extends ServiceImpl<FarmerProductMapper, F
     @Resource
     private ProductImageService productImageService;
     
+    @Resource
+    private EntityVOConverter entityVOConverter;
+    
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Long publishProduct(Long farmerId, FarmerProductRequest request) {
         // 参数验证
-        if (request.getProductImages() == null || request.getProductImages().isEmpty()) {
+        boolean hasImageDetails = request.getProductImageDetails() != null && !request.getProductImageDetails().isEmpty();
+        
+        if (!hasImageDetails) {
             throw new BusinessException("产品发布时至少需要上传一张图片");
         }
         
@@ -56,7 +63,7 @@ public class FarmerProductServiceImpl extends ServiceImpl<FarmerProductMapper, F
         save(product);
         
         // 处理产品图片
-        handleProductImages(product.getId(), request.getProductImages());
+        productImageService.saveProductImages(product.getId(), request.getProductImageDetails());
         
         return product.getId();
     }
@@ -93,11 +100,14 @@ public class FarmerProductServiceImpl extends ServiceImpl<FarmerProductMapper, F
         updateById(product);
         
         // 处理产品图片（如果提供了新图片，则替换旧图片）
-        if (request.getProductImages() != null && !request.getProductImages().isEmpty()) {
+        boolean hasImageDetails = request.getProductImageDetails() != null && !request.getProductImageDetails().isEmpty();
+        
+        if (hasImageDetails) {
             // 先删除旧图片
             productImageService.deleteByProductId(productId);
+            
             // 上传新图片
-            handleProductImages(productId, request.getProductImages());
+            productImageService.saveProductImages(productId, request.getProductImageDetails());
         }
     }
     
@@ -178,25 +188,29 @@ public class FarmerProductServiceImpl extends ServiceImpl<FarmerProductMapper, F
         return page(page, wrapper);
     }
     
-    /**
-     * 处理产品图片上传
-     */
-    private void handleProductImages(Long productId, List<MultipartFile> files) {
-        if (files == null || files.isEmpty()) {
-            return;
-        }
-        
-        List<String> imageUrls = new ArrayList<>();
-        for (MultipartFile file : files) {
-            if (!file.isEmpty()) {
-                String imageUrl = fileUploadService.uploadProductImage(file);
-                imageUrls.add(imageUrl);
-            }
-        }
-        
-        // 保存上传的图片信息到数据库
-        if (!imageUrls.isEmpty()) {
-            productImageService.saveProductImages(productId, imageUrls, "COVER");
-        }
+    @Override
+    public IPage<FarmerProductVO> listProductsWithImages(int pageNum, int pageSize, Long categoryId, Integer originAreaId, String status) {
+        Page<FarmerProductVO> page = new Page<>(pageNum, pageSize);
+        IPage<FarmerProductVO> result = baseMapper.selectProductsWithImages(page, categoryId, originAreaId, status);
+        return result;
+    }
+    
+    @Override
+    public IPage<FarmerProductVO> listMyProductsWithImages(Long farmerId, int pageNum, int pageSize) {
+        Page<FarmerProductVO> page = new Page<>(pageNum, pageSize);
+        IPage<FarmerProductVO> result = baseMapper.selectMyProductsWithImages(page, farmerId);
+        return result;
+    }
+    
+    @Override
+    public FarmerProductVO getProductWithImagesById(Long productId) {
+        FarmerProductVO result = baseMapper.selectProductWithImagesById(productId);
+        return result;
+    }
+    
+    @Override
+    public boolean isProductOwner(Long productId, Long farmerId) {
+        FarmerProduct product = getById(productId);
+        return product != null && product.getFarmerId().equals(farmerId);
     }
 }

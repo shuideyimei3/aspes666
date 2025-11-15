@@ -2,10 +2,12 @@ package cn.aspes.agri.trade.service;
 
 import cn.aspes.agri.trade.config.TestDatabaseConfig;
 import cn.aspes.agri.trade.dto.FarmerProductRequest;
+import cn.aspes.agri.trade.dto.ProductImageRequest;
 import cn.aspes.agri.trade.entity.FarmerInfo;
 import cn.aspes.agri.trade.entity.FarmerProduct;
 import cn.aspes.agri.trade.entity.ProductImage;
 import cn.aspes.agri.trade.entity.StockReservation;
+import cn.aspes.agri.trade.enums.ProductImageType;
 import cn.aspes.agri.trade.enums.ProductStatus;
 import cn.aspes.agri.trade.enums.UserRole;
 import cn.aspes.agri.trade.exception.BusinessException;
@@ -53,7 +55,7 @@ class FarmerProductServiceIntegrationTest {
     
     private Long farmerId;
     private Long otherFarmerId;
-    private List<MultipartFile> mockImages;
+    private List<ProductImageRequest> mockImageDetails;
 
     @BeforeEach
     void setUp() {
@@ -90,16 +92,21 @@ class FarmerProductServiceIntegrationTest {
         otherFarmerInfo.setOriginAreaId(1);
         farmerInfoService.save(otherFarmerInfo);
         
-        // 创建模拟图片文件（使用简单内容避免上传错误）
-        mockImages = new ArrayList<>();
-        // 只使用一个简单的mock文件
+        // 创建模拟图片详情（使用简单内容避免上传错误）
+        mockImageDetails = new ArrayList<>();
+        // 创建一个简单的mock图片详情
         MockMultipartFile mockFile = new MockMultipartFile(
             "image", 
             "test.jpg", 
             "image/jpeg", 
             "test".getBytes()
         );
-        mockImages.add(mockFile);
+        
+        ProductImageRequest imageRequest = new ProductImageRequest();
+        imageRequest.setFile(mockFile);
+        imageRequest.setImageType(ProductImageType.COVER);
+        imageRequest.setSort(1);
+        mockImageDetails.add(imageRequest);
     }
 
     @Test
@@ -118,7 +125,7 @@ class FarmerProductServiceIntegrationTest {
         request.setDescription("优质有机水稻，产自测试农场");
         request.setOriginAreaId(1);
         request.setCategoryId(1L);
-        request.setProductImages(mockImages);
+        request.setProductImageDetails(mockImageDetails);
 
         // 尝试发布产品，如果因为文件上传失败，则使用直接数据库方式创建
         final Long[] productIdHolder = new Long[1];
@@ -180,7 +187,7 @@ class FarmerProductServiceIntegrationTest {
         request.setStock(100);
         request.setCategoryId(1L);
         request.setOriginAreaId(1);
-        request.setProductImages(new ArrayList<>()); // 空图片列表
+        request.setProductImageDetails(new ArrayList<>()); // 空图片列表
 
         assertThrows(BusinessException.class, () -> {
             farmerProductService.publishProduct(farmerId, request);
@@ -200,7 +207,7 @@ class FarmerProductServiceIntegrationTest {
         publishRequest.setStock(100);
         publishRequest.setCategoryId(1L);
         publishRequest.setOriginAreaId(1);
-        publishRequest.setProductImages(mockImages);
+        publishRequest.setProductImageDetails(mockImageDetails);
         
         final Long[] productIdHolder = new Long[1];
         try {
@@ -234,7 +241,7 @@ class FarmerProductServiceIntegrationTest {
         updateRequest.setDescription("更新后的描述");
         updateRequest.setCategoryId(1L);
         updateRequest.setOriginAreaId(1);
-        updateRequest.setProductImages(mockImages);
+        updateRequest.setProductImageDetails(mockImageDetails);
         
         try {
             farmerProductService.updateProduct(productIdHolder[0], farmerId, updateRequest);
@@ -278,7 +285,7 @@ class FarmerProductServiceIntegrationTest {
         publishRequest.setStock(100);
         publishRequest.setCategoryId(1L);
         publishRequest.setOriginAreaId(1);
-        publishRequest.setProductImages(mockImages);
+        publishRequest.setProductImageDetails(mockImageDetails);
         
         final Long[] productIdHolder = new Long[1];
         try {
@@ -328,7 +335,7 @@ class FarmerProductServiceIntegrationTest {
         publishRequest.setStock(100);
         publishRequest.setCategoryId(1L);
         publishRequest.setOriginAreaId(1);
-        publishRequest.setProductImages(mockImages);
+        publishRequest.setProductImageDetails(mockImageDetails);
         
         final Long[] productIdHolder = new Long[1];
         try {
@@ -429,7 +436,7 @@ class FarmerProductServiceIntegrationTest {
         publishRequest.setStock(100);
         publishRequest.setCategoryId(1L);
         publishRequest.setOriginAreaId(1);
-        publishRequest.setProductImages(mockImages);
+        publishRequest.setProductImageDetails(mockImageDetails);
         
         final Long[] productIdHolder = new Long[1];
         try {
@@ -473,7 +480,7 @@ class FarmerProductServiceIntegrationTest {
         publishRequest.setStock(100);
         publishRequest.setCategoryId(1L);
         publishRequest.setOriginAreaId(1);
-        publishRequest.setProductImages(mockImages);
+        publishRequest.setProductImageDetails(mockImageDetails);
         
         final Long[] productIdHolder = new Long[1];
         try {
@@ -515,7 +522,7 @@ class FarmerProductServiceIntegrationTest {
         publishRequest.setStock(100);
         publishRequest.setCategoryId(1L);
         publishRequest.setOriginAreaId(1);
-        publishRequest.setProductImages(mockImages);
+        publishRequest.setProductImageDetails(mockImageDetails);
         
         final Long[] productIdHolder = new Long[1];
         try {
@@ -565,7 +572,7 @@ class FarmerProductServiceIntegrationTest {
             request.setStock(100);
             request.setOriginAreaId(i % 2 == 0 ? 1 : 2);
             request.setCategoryId(i % 2 == 0 ? 1L : 2L);
-            request.setProductImages(mockImages);
+            request.setProductImageDetails(mockImageDetails);
             
             try {
                 farmerProductService.publishProduct(farmerId, request);
@@ -621,7 +628,7 @@ class FarmerProductServiceIntegrationTest {
             request.setStock(100);
             request.setCategoryId(1L);
             request.setOriginAreaId(1);
-            request.setProductImages(mockImages);
+            request.setProductImageDetails(mockImageDetails);
             
             try {
                 farmerProductService.publishProduct(farmerId, request);
@@ -654,7 +661,7 @@ class FarmerProductServiceIntegrationTest {
             request.setStock(100);
             request.setCategoryId(1L);
             request.setOriginAreaId(1);
-            request.setProductImages(mockImages);
+            request.setProductImageDetails(mockImageDetails);
             
             try {
                 farmerProductService.publishProduct(otherFarmerId, request);

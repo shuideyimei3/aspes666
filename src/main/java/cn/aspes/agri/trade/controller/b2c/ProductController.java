@@ -39,7 +39,7 @@ public class ProductController {
     @PostMapping(consumes = {"multipart/form-data"})
     @PreAuthorize("hasRole('FARMER')")
     public Result<Long> publishProduct(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                        @ModelAttribute FarmerProductRequest request) {
+                                        @Valid @ModelAttribute FarmerProductRequest request) {
         Long farmerId = farmerInfoService.getByUserId(userDetails.getId()).getId();
         Long productId = farmerProductService.publishProduct(farmerId, request);
         return Result.success(productId);
@@ -50,7 +50,7 @@ public class ProductController {
     @PreAuthorize("hasRole('FARMER')")
     public Result<Void> updateProduct(@PathVariable Long productId,
                                        @AuthenticationPrincipal CustomUserDetails userDetails,
-                                       @ModelAttribute FarmerProductRequest request) {
+                                       @Valid @ModelAttribute FarmerProductRequest request) {
         Long farmerId = farmerInfoService.getByUserId(userDetails.getId()).getId();
         farmerProductService.updateProduct(productId, farmerId, request);
         return Result.success();
@@ -83,8 +83,7 @@ public class ProductController {
                                                       @RequestParam(required = false) Long categoryId,
                                                       @RequestParam(required = false) Integer originAreaId,
                                                       @RequestParam(required = false) String status) {
-        IPage<FarmerProduct> page = farmerProductService.listProducts(pageNum, pageSize, categoryId, originAreaId, status);
-        IPage<FarmerProductVO> voPage = entityVOConverter.toFarmerProductVOPage(page);
+        IPage<FarmerProductVO> voPage = farmerProductService.listProductsWithImages(pageNum, pageSize, categoryId, originAreaId, status);
         return Result.success(voPage);
     }
     
@@ -95,19 +94,14 @@ public class ProductController {
                                                         @RequestParam(defaultValue = "1") int pageNum,
                                                         @RequestParam(defaultValue = "10") int pageSize) {
         Long farmerId = farmerInfoService.getByUserId(userDetails.getId()).getId();
-        IPage<FarmerProduct> page = farmerProductService.listMyProducts(farmerId, pageNum, pageSize);
-        IPage<FarmerProductVO> voPage = entityVOConverter.toFarmerProductVOPage(page);
+        IPage<FarmerProductVO> voPage = farmerProductService.listMyProductsWithImages(farmerId, pageNum, pageSize);
         return Result.success(voPage);
     }
     
     @Operation(summary = "查询产品详情")
     @GetMapping("/{productId}")
     public Result<FarmerProductVO> getProduct(@PathVariable Long productId) {
-        FarmerProduct product = farmerProductService.getById(productId);
-        if (product == null) {
-            return Result.success(null);
-        }
-        FarmerProductVO vo = entityVOConverter.toFarmerProductVO(product);
+        FarmerProductVO vo = farmerProductService.getProductWithImagesById(productId);
         return Result.success(vo);
     }
 }
