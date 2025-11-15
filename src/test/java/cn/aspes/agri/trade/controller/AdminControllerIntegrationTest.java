@@ -51,9 +51,6 @@ public class AdminControllerIntegrationTest {
     private PurchaserInfoService purchaserInfoService;
     
     @Autowired
-    private UserCertificationService certificationService;
-    
-    @Autowired
     private CooperationReviewService reviewService;
     
     @Autowired
@@ -65,7 +62,6 @@ public class AdminControllerIntegrationTest {
     private User purchaserUser;
     private FarmerInfo farmerInfo;
     private PurchaserInfo purchaserInfo;
-    private UserCertificationApply certificationApply;
     private CooperationReview cooperationReview;
     
     @BeforeEach
@@ -125,13 +121,6 @@ public class AdminControllerIntegrationTest {
         purchaserInfo.setPhone("13900139000");
         purchaserInfo.setAuditStatus("PENDING");
         purchaserInfoService.save(purchaserInfo);
-        
-        // 创建认证申请
-        certificationApply = new UserCertificationApply();
-        certificationApply.setUserId(normalUser.getId());
-        certificationApply.setApplyType("FARMER");
-        certificationApply.setStatus("PENDING");
-        certificationService.save(certificationApply);
         
         // 创建合作评价
         cooperationReview = new CooperationReview();
@@ -249,76 +238,6 @@ public class AdminControllerIntegrationTest {
         mockMvc.perform(put("/api/admin/users/purchasers/{id}/audit", purchaserInfo.getId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true));
-    }
-    
-    @Test
-    @WithMockUser(roles = {"ADMIN"})
-    @DisplayName("管理员分页查询待审核认证申请")
-    void testPagePendingApplications() throws Exception {
-        mockMvc.perform(get("/api/admin/certifications/pending")
-                .param("current", "1")
-                .param("size", "10"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.records").isArray());
-    }
-    
-    @Test
-    @WithMockUser(roles = {"ADMIN"})
-    @DisplayName("管理员按申请类型查询待审核认证申请")
-    void testPagePendingApplicationsByType() throws Exception {
-        mockMvc.perform(get("/api/admin/certifications/pending")
-                .param("current", "1")
-                .param("size", "10")
-                .param("applyType", "FARMER"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.records").isArray());
-    }
-    
-    @Test
-    @WithMockUser(roles = {"ADMIN"})
-    @DisplayName("管理员分页查询所有认证申请")
-    void testPageApplications() throws Exception {
-        mockMvc.perform(get("/api/admin/certifications/page")
-                .param("current", "1")
-                .param("size", "10"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.records").isArray());
-    }
-    
-    @Test
-    @WithMockUser(roles = {"ADMIN"})
-    @DisplayName("管理员按状态查询认证申请")
-    void testPageApplicationsByStatus() throws Exception {
-        mockMvc.perform(get("/api/admin/certifications/page")
-                .param("current", "1")
-                .param("size", "10")
-                .param("status", "PENDING"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.records").isArray());
-    }
-    
-    @Test
-    @WithMockUser(roles = {"ADMIN"})
-    @DisplayName("管理员批准认证申请")
-    void testApproveCertification() throws Exception {
-        mockMvc.perform(put("/api/admin/certifications/{applyId}/approve", certificationApply.getId())
-                .param("adminRemark", "审核通过"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true));
-    }
-    
-    @Test
-    @WithMockUser(roles = {"ADMIN"})
-    @DisplayName("管理员拒绝认证申请")
-    void testRejectCertification() throws Exception {
-        mockMvc.perform(put("/api/admin/certifications/{applyId}/reject", certificationApply.getId())
-                .param("rejectReason", "资料不完整"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
     }

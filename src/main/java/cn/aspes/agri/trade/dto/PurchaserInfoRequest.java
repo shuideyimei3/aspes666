@@ -22,4 +22,10 @@ public class PurchaserInfoRequest {
     private String purchaseScale;
     
     private List<String> preferredOrigin;
+    
+    // 认证相关字段
+    @NotBlank(message = "法定代表人不能为空")
+    private String legalRepresentative;
+    
+    private String applyReason;
 }

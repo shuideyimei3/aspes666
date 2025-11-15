@@ -46,7 +46,7 @@ public class PurchaserInfoServiceImpl extends ServiceImpl<PurchaserInfoMapper, P
             throw new BusinessException("采购方信息已存在，请勿重复提交");
         }
         
-        // 创建采购方信息
+        // 创建采购方信息（包含认证信息）
         PurchaserInfo purchaserInfo = new PurchaserInfo();
         BeanUtils.copyProperties(request, purchaserInfo);
         purchaserInfo.setUserId(userId);
@@ -70,14 +70,16 @@ public class PurchaserInfoServiceImpl extends ServiceImpl<PurchaserInfoMapper, P
         // 更新审核状态
         purchaserInfo.setAuditStatus(request.getAuditStatus());
         purchaserInfo.setAuditRemark(request.getAuditRemark());
-        updateById(purchaserInfo);
         
-        // 如果审核通过，更新用户认证状态
+        // 如果审核通过，设置批准时间和更新用户认证状态
         if (request.getAuditStatus() == AuditStatus.APPROVED) {
+            purchaserInfo.setApprovedTime(LocalDateTime.now());
             User user = userMapper.selectById(purchaserInfo.getUserId());
             user.setIsCertified(1);
             userMapper.updateById(user);
         }
+        
+        updateById(purchaserInfo);
     }
     
     @Override

@@ -25,4 +25,16 @@ public class FarmerInfoRequest {
     private String bankAccount;
     
     private String bankName;
+    
+    // 认证相关字段
+    @NotBlank(message = "身份证号不能为空")
+    private String idNumber;
+    
+    @NotBlank(message = "身份证正面照不能为空")
+    private String idCardFrontUrl;
+    
+    @NotBlank(message = "身份证反面照不能为空")
+    private String idCardBackUrl;
+    
+    private String applyReason;
 }

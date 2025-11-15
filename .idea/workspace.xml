@@ -78,7 +78,7 @@
     "project.structure.last.edited": "SDK",
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "通义灵码",
+    "settings.editor.selected.configurable": "preferences.pluginManager",
     "to.speed.mode.migration.done": "true",
     "vue.rearranger.settings.migration": "true"
   }
@@ -116,7 +116,7 @@
       <workItem from="1763047949978" duration="1450000" />
       <workItem from="1763049411188" duration="14726000" />
       <workItem from="1763207953545" duration="117000" />
-      <workItem from="1763208084333" duration="6883000" />
+      <workItem from="1763208084333" duration="10759000" />
     </task>
     <task id="LOCAL-00001" summary="init">
       <option name="closed" value="true" />

@@ -35,18 +35,23 @@ CREATE TABLE IF NOT EXISTS `user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表（农户/采购方/管理员）';
 
 
--- 3. 农户信息表（关联用户表，记录生产信息）
+-- 3. 农户信息表（关联用户表，记录生产信息和认证信息）
 CREATE TABLE IF NOT EXISTS `farmer_info` (
     `id` bigint NOT NULL COMMENT '农户信息ID（雪花算法）',
     `user_id` bigint NOT NULL UNIQUE COMMENT '关联用户表（role=farmer）',
     `farm_name` VARCHAR(100) NOT NULL COMMENT '农场/合作社名称',
     `origin_area_id` INT NOT NULL COMMENT '主要产地（关联origin_area）',
-    `production_scale` VARCHAR(200) COMMENT '生产规模（如“500亩耕地”“年出栏1000头”）',
+    `production_scale` VARCHAR(200) COMMENT '生产规模（如"500亩耕地""年出栏1000头"）',
     `certifications` JSON DEFAULT NULL COMMENT '认证资质（如{"有机认证":"url","绿色食品":"url"}）',
     `bank_account` VARCHAR(50) DEFAULT NULL COMMENT '收款银行账号',
     `bank_name` VARCHAR(100) DEFAULT NULL COMMENT '开户银行',
+    `id_number` VARCHAR(50) NOT NULL COMMENT '身份证号',
+    `id_card_front_url` VARCHAR(500) NOT NULL COMMENT '身份证正面照URL',
+    `id_card_back_url` VARCHAR(500) NOT NULL COMMENT '身份证反面照URL',
+    `apply_reason` TEXT COMMENT '认证申请说明',
     `audit_status` ENUM('pending','approved','rejected') DEFAULT 'pending' COMMENT '资质审核状态',
     `audit_remark` VARCHAR(500) DEFAULT NULL COMMENT '审核备注',
+    `approved_time` DATETIME DEFAULT NULL COMMENT '批准时间',
     `create_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `update_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
@@ -54,26 +59,29 @@ CREATE TABLE IF NOT EXISTS `farmer_info` (
     KEY `idx_farmer_audit` (`audit_status`),
     CONSTRAINT `fk_farmer_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_farmer_origin` FOREIGN KEY (`origin_area_id`) REFERENCES `origin_area` (`area_id`) ON DELETE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='农户/合作社信息表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='农户/合作社信息表（包含认证信息）';
 
 
--- 4. 采购方信息表（关联用户表，记录企业信息）
+-- 4. 采购方信息表（关联用户表，记录企业信息和认证信息）
 CREATE TABLE IF NOT EXISTS `purchaser_info` (
     `id` bigint NOT NULL COMMENT '采购方信息ID（雪花算法）',
     `user_id` bigint NOT NULL UNIQUE COMMENT '关联用户表（role=purchaser）',
     `company_name` VARCHAR(100) NOT NULL COMMENT '企业名称',
-    `company_type` VARCHAR(50) COMMENT '企业类型（如“食品加工厂”“超市连锁”“电商平台”）',
+    `company_type` VARCHAR(50) COMMENT '企业类型（如"食品加工厂""超市连锁""电商平台"）',
     `business_license` VARCHAR(500) NOT NULL COMMENT '营业执照URL',
-    `purchase_scale` VARCHAR(200) COMMENT '采购规模（如“月采购量10吨以上”）',
+    `purchase_scale` VARCHAR(200) COMMENT '采购规模（如"月采购量10吨以上"）',
     `preferred_origin` JSON DEFAULT NULL COMMENT '偏好产地（如["山东","河南"]）',
+    `legal_representative` VARCHAR(100) NOT NULL COMMENT '法定代表人',
+    `apply_reason` TEXT COMMENT '认证申请说明',
     `audit_status` ENUM('pending','approved','rejected') DEFAULT 'pending' COMMENT '资质审核状态',
     `audit_remark` VARCHAR(500) DEFAULT NULL COMMENT '审核备注',
+    `approved_time` DATETIME DEFAULT NULL COMMENT '批准时间',
     `create_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `update_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     KEY `idx_purchaser_audit` (`audit_status`),
     CONSTRAINT `fk_purchaser_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='采购方企业信息表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='采购方企业信息表（包含认证信息）';
 
 
 -- 5. 农副产品分类表（按品类/属性划分）
@@ -327,32 +335,7 @@ CREATE TABLE IF NOT EXISTS `stock_reservation` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='库存预留表';
 
 
--- 17. 用户认证申请表（农户/采购方身份认证）
-CREATE TABLE IF NOT EXISTS `user_certification_apply` (
-    `id` bigint NOT NULL COMMENT '申请ID（雪花算法）',
-    `user_id` bigint NOT NULL COMMENT '申请用户ID',
-    `apply_type` ENUM('farmer','purchaser') NOT NULL COMMENT '申请类型：农户/采购方',
-    `id_number` VARCHAR(50) COMMENT '身份证号（农户）或营业执照号（采购方）',
-    `id_card_front_url` VARCHAR(500) COMMENT '身份证正面照URL',
-    `id_card_back_url` VARCHAR(500) COMMENT '身份证反面照URL',
-    `business_license_url` VARCHAR(500) COMMENT '营业执照照片URL（采购方）',
-    `legal_representative` VARCHAR(100) COMMENT '法定代表人（企业）',
-    `apply_reason` TEXT COMMENT '认证申请说明',
-    `status` ENUM('pending','approved','rejected') DEFAULT 'pending' COMMENT '申请状态：待审核/已批准/已拒绝',
-    `admin_remark` VARCHAR(500) COMMENT '管理员备注',
-    `approved_time` DATETIME DEFAULT NULL COMMENT '批准时间',
-    `create_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    `update_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    KEY `fk_apply_user` (`user_id`),
-    KEY `idx_apply_status` (`status`),
-    KEY `idx_apply_type` (`apply_type`),
-    UNIQUE KEY `uk_user_type` (`user_id`, `apply_type`) COMMENT '同用户同类型仅能申请一次',
-    CONSTRAINT `fk_apply_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户认证申请表';
-
-
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- 执行成功提示
-SELECT '农副产品对接平台SQL脚本执行成功！共包含17张核心表，支持库存预留和用户认证' AS `result`;
+SELECT '农副产品对接平台SQL脚本执行成功！共包含16张核心表，支持库存预留和用户认证' AS `result`;

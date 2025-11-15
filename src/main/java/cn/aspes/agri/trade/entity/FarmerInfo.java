@@ -33,9 +33,20 @@ public class FarmerInfo {
     
     private String bankName;
     
+    // 认证相关字段
+    private String idNumber;
+    
+    private String idCardFrontUrl;
+    
+    private String idCardBackUrl;
+    
+    private String applyReason;
+    
     private AuditStatus auditStatus;
     
     private String auditRemark;
+    
+    private LocalDateTime approvedTime;
     
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;

@@ -31,9 +31,16 @@ public class PurchaserInfo {
     @TableField(typeHandler = JacksonTypeHandler.class)
     private List<String> preferredOrigin;
     
+    // 认证相关字段
+    private String legalRepresentative;
+    
+    private String applyReason;
+    
     private AuditStatus auditStatus;
     
     private String auditRemark;
+    
+    private LocalDateTime approvedTime;
     
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;

@@ -46,7 +46,7 @@ public class FarmerInfoServiceImpl extends ServiceImpl<FarmerInfoMapper, FarmerI
             throw new BusinessException("农户信息已存在，请勿重复提交");
         }
         
-        // 创建农户信息
+        // 创建农户信息（包含认证信息）
         FarmerInfo farmerInfo = new FarmerInfo();
         BeanUtils.copyProperties(request, farmerInfo);
         farmerInfo.setUserId(userId);
@@ -70,14 +70,16 @@ public class FarmerInfoServiceImpl extends ServiceImpl<FarmerInfoMapper, FarmerI
         // 更新审核状态
         farmerInfo.setAuditStatus(request.getAuditStatus());
         farmerInfo.setAuditRemark(request.getAuditRemark());
-        updateById(farmerInfo);
         
-        // 如果审核通过，更新用户认证状态
+        // 如果审核通过，设置批准时间和更新用户认证状态
         if (request.getAuditStatus() == AuditStatus.APPROVED) {
+            farmerInfo.setApprovedTime(LocalDateTime.now());
             User user = userMapper.selectById(farmerInfo.getUserId());
             user.setIsCertified(1);
             userMapper.updateById(user);
         }
+        
+        updateById(farmerInfo);
     }
     
     @Override
