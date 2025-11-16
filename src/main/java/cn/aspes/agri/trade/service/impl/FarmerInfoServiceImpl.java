@@ -15,9 +15,12 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
@@ -25,6 +28,7 @@ import java.time.LocalDateTime;
 /**
  * 农户信息服务实现
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class FarmerInfoServiceImpl extends ServiceImpl<FarmerInfoMapper, FarmerInfo> implements FarmerInfoService {
@@ -33,7 +37,6 @@ public class FarmerInfoServiceImpl extends ServiceImpl<FarmerInfoMapper, FarmerI
     private final FileUploadService fileUploadService;
     
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public void submitFarmerInfo(Long userId, FarmerInfoRequest request) {
         // 检查用户是否存在且角色正确
         User user = userMapper.selectById(userId);
@@ -50,18 +53,50 @@ public class FarmerInfoServiceImpl extends ServiceImpl<FarmerInfoMapper, FarmerI
             throw new BusinessException("农户信息已存在，请勿重复提交");
         }
         
-        // 上传身份证正面照
+        // 在事务外上传身份证
         MultipartFile idCardFrontFile = request.getIdCardFrontFile();
         String idCardFrontUrl = null;
         if (idCardFrontFile != null && !idCardFrontFile.isEmpty()) {
-            idCardFrontUrl = fileUploadService.uploadIdCardFront(idCardFrontFile);
+            try {
+                idCardFrontUrl = fileUploadService.uploadIdCardFront(idCardFrontFile);
+            } catch (Exception e) {
+                log.warn("身份证正面照上传失败，用户={}, 错误={}", userId, e.getMessage());
+                throw new BusinessException("身份证正面照上传失败：" + e.getMessage());
+            }
         }
         
-        // 上传身份证反面照
         MultipartFile idCardBackFile = request.getIdCardBackFile();
         String idCardBackUrl = null;
         if (idCardBackFile != null && !idCardBackFile.isEmpty()) {
-            idCardBackUrl = fileUploadService.uploadIdCardBack(idCardBackFile);
+            try {
+                idCardBackUrl = fileUploadService.uploadIdCardBack(idCardBackFile);
+            } catch (Exception e) {
+                log.warn("身份证反面照上传失败，用户={}, 错误={}", userId, e.getMessage());
+                // 删除已成功上传的正面照
+                if (idCardFrontUrl != null) {
+                    try {
+                        fileUploadService.deleteFile(idCardFrontUrl);
+                    } catch (Exception deleteError) {
+                        log.error("删除身份证正面照失败", deleteError);
+                    }
+                }
+                throw new BusinessException("身份证反面照上传失败：" + e.getMessage());
+            }
+        }
+        
+        // 在事务中保存农户信息
+        submitFarmerInfoInternal(userId, request, idCardFrontUrl, idCardBackUrl);
+    }
+    
+    /**
+     * 内部方法：在事务中提交农户信息
+     * 如果事务回滚，会自动删除已上传的身份证
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void submitFarmerInfoInternal(Long userId, FarmerInfoRequest request, String idCardFrontUrl, String idCardBackUrl) {
+        // 注册事务回滚时的文件删除回调
+        if (idCardFrontUrl != null && TransactionSynchronizationManager.isActualTransactionActive()) {
+            registerFilesDeleteOnRollback(idCardFrontUrl, idCardBackUrl);
         }
         
         // 创建农户信息（包含认证信息）
@@ -79,6 +114,36 @@ public class FarmerInfoServiceImpl extends ServiceImpl<FarmerInfoMapper, FarmerI
         }
         
         save(farmerInfo);
+    }
+    
+    /**
+     * 注册事务回滚时的文件删除回调
+     */
+    private void registerFilesDeleteOnRollback(String idCardFrontUrl, String idCardBackUrl) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCompletion(int status) {
+                // status = TransactionSynchronization.STATUS_ROLLED_BACK 表示事务已回滚
+                if (status == STATUS_ROLLED_BACK) {
+                    if (idCardFrontUrl != null) {
+                        try {
+                            fileUploadService.deleteFile(idCardFrontUrl);
+                            log.info("事务回滚：已自动删除身份证正面照，URL={}", idCardFrontUrl);
+                        } catch (Exception e) {
+                            log.error("事务回滚时删除文件失败，URL={}", idCardFrontUrl, e);
+                        }
+                    }
+                    if (idCardBackUrl != null) {
+                        try {
+                            fileUploadService.deleteFile(idCardBackUrl);
+                            log.info("事务回滚：已自动删除身份证反面照，URL={}", idCardBackUrl);
+                        } catch (Exception e) {
+                            log.error("事务回滚时删除文件失败，URL={}", idCardBackUrl, e);
+                        }
+                    }
+                }
+            }
+        });
     }
     
     @Override
@@ -140,9 +205,31 @@ public class FarmerInfoServiceImpl extends ServiceImpl<FarmerInfoMapper, FarmerI
             throw new BusinessException("无权修改该农户信息");
         }
         
+        // 保存旧的图片URL，用于后续删除
+        String oldIdCardFrontUrl = farmerInfo.getIdCardFrontUrl();
+        String oldIdCardBackUrl = farmerInfo.getIdCardBackUrl();
+        
         // 更新信息
         BeanUtils.copyProperties(request, farmerInfo);
         farmerInfo.setId(farmerId);
         updateById(farmerInfo);
+        
+        // 删除旧的身份证图片（如果URL发生变化）
+        deleteOldImageIfChanged(oldIdCardFrontUrl, farmerInfo.getIdCardFrontUrl());
+        deleteOldImageIfChanged(oldIdCardBackUrl, farmerInfo.getIdCardBackUrl());
+    }
+    
+    /**
+     * 删除旧图片（如果URL发生变化）
+     */
+    private void deleteOldImageIfChanged(String oldUrl, String newUrl) {
+        if (oldUrl != null && !oldUrl.isEmpty() && !oldUrl.equals(newUrl)) {
+            try {
+                fileUploadService.deleteFile(oldUrl);
+                log.info("已删除旧图片文件，URL={}", oldUrl);
+            } catch (Exception e) {
+                log.error("删除旧图片文件失败，URL={}", oldUrl, e);
+            }
+        }
     }
 }

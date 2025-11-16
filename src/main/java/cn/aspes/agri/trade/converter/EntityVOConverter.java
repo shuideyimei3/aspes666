@@ -233,6 +233,20 @@ public class EntityVOConverter {
         return result;
     }
     
+    /**
+     * 转换PaymentRecord分页对象（使用Page实现类）
+     * @param page PaymentRecord分页对象
+     * @return PaymentRecordVO分页对象
+     */
+    public Page<PaymentRecordVO> toPaymentRecordVOPage(Page<PaymentRecord> page) {
+        if (page == null) {
+            return null;
+        }
+        Page<PaymentRecordVO> result = new Page<>(page.getCurrent(), page.getSize(), page.getTotal());
+        result.setRecords(toPaymentRecordVOList(page.getRecords()));
+        return result;
+    }
+    
     // ============== LogisticsRecord转换 ==============
     
     public LogisticsVO toLogisticsVO(LogisticsRecord record) {

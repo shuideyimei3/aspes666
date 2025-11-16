@@ -2,6 +2,7 @@ package cn.aspes.agri.trade.exception;
 
 import cn.aspes.agri.trade.common.Result;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.UnexpectedRollbackException;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -22,6 +23,15 @@ public class GlobalExceptionHandler {
     public Result<?> handleBusinessException(BusinessException e) {
         log.error("业务异常: {}", e.getMessage());
         return Result.error(e.getCode(), e.getMessage());
+    }
+    
+    /**
+     * 处理事务回滚异常
+     */
+    @ExceptionHandler(UnexpectedRollbackException.class)
+    public Result<?> handleUnexpectedRollbackException(UnexpectedRollbackException e) {
+        log.error("事务回滚异常: ", e);
+        return Result.error("执行操作失败，请页面刷新后重试");
     }
     
     /**
@@ -58,6 +68,11 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public Result<?> handleException(Exception e) {
+        // 过滤事务相关异常以防止无限循环
+        if (e instanceof UnexpectedRollbackException) {
+            log.error("事务异常: ", e);
+            return Result.error("执行操作失败，请页面刷新后重试");
+        }
         log.error("系统异常: ", e);
         return Result.error("系统异常，请联系管理员");
     }

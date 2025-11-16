@@ -42,4 +42,19 @@ public interface PaymentRecordService extends IService<PaymentRecord> {
      * 查询我的支付记录
      */
     Page<PaymentRecord> listMyPayments(Long userId, String role, Integer current, Integer size);
+    
+    /**
+     * 分页查询所有支付记录（管理员使用）
+     */
+    Page<PaymentRecord> pageAllPayments(Integer current, Integer size, Long orderId, String status);
+    
+    /**
+     * 根据采购方ID分页查询支付记录（管理员使用）
+     */
+    Page<PaymentRecord> pagePaymentsByPurchaserId(Long purchaserId, Integer current, Integer size, String status);
+    
+    /**
+     * 删除支付记录（管理员操作）
+     */
+    void deletePayment(Long paymentId);
 }

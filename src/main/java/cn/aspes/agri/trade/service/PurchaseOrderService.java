@@ -16,9 +16,9 @@ public interface PurchaseOrderService extends IService<PurchaseOrder> {
     PurchaseOrder createOrderFromContract(Long contractId);
     
     /**
-     * 订单验收
+     * 农户交货
      */
-    void inspectOrder(Long orderId, Integer actualQuantity, String inspectionResult);
+    void deliverOrder(Long orderId, Integer actualQuantity, String inspectionResult);
     
     /**
      * 订单完成

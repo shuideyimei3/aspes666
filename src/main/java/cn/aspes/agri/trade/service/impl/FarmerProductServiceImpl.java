@@ -19,10 +19,12 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import jakarta.annotation.Resource;
+import org.springframework.util.StringUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,7 +47,6 @@ public class FarmerProductServiceImpl extends ServiceImpl<FarmerProductMapper, F
     private EntityVOConverter entityVOConverter;
     
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public Long publishProduct(Long farmerId, FarmerProductRequest request) {
         // 参数验证
         boolean hasImageDetails = request.getProductImageDetails() != null && !request.getProductImageDetails().isEmpty();
@@ -54,6 +55,16 @@ public class FarmerProductServiceImpl extends ServiceImpl<FarmerProductMapper, F
             throw new BusinessException("产品发布时至少需要上传一张图片");
         }
         
+        // 在事务中处理产品和图片保存
+        return publishProductInternal(farmerId, request);
+    }
+    
+    /**
+     * 内部方法：在事务中发布产品
+     * 如果事务回滚，会自动删除已上传的图片
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public Long publishProductInternal(Long farmerId, FarmerProductRequest request) {
         // 创建产品
         FarmerProduct product = new FarmerProduct();
         BeanUtils.copyProperties(request, product);
@@ -69,7 +80,6 @@ public class FarmerProductServiceImpl extends ServiceImpl<FarmerProductMapper, F
     }
     
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public void updateProduct(Long productId, Long farmerId, FarmerProductRequest request) {
         FarmerProduct product = getById(productId);
         if (product == null) {
@@ -96,21 +106,35 @@ public class FarmerProductServiceImpl extends ServiceImpl<FarmerProductMapper, F
             }
         }
         
-        BeanUtils.copyProperties(request, product);
-        updateById(product);
-        
         // 处理产品图片（如果提供了新图片，则替换旧图片）
         boolean hasImageDetails = request.getProductImageDetails() != null && !request.getProductImageDetails().isEmpty();
         
         if (hasImageDetails) {
-            // 先删除旧图片
-            productImageService.deleteByProductId(productId);
-            
-            // 上传新图片
-            productImageService.saveProductImages(productId, request.getProductImageDetails());
+            // 在事务中更新产品和图片
+            updateProductInternal(productId, product, request);
+        } else {
+            // 只更新产品字段，不改变图片
+            BeanUtils.copyProperties(request, product);
+            updateById(product);
         }
     }
     
+    /**
+     * 内部方法：在事务中更新产品（包含图片）
+     * 如果事务回滚，会自动删除已上传的图片
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void updateProductInternal(Long productId, FarmerProduct product, FarmerProductRequest request) {
+        BeanUtils.copyProperties(request, product);
+        updateById(product);
+        
+        // 先删除旧图片
+        productImageService.deleteByProductId(productId);
+        
+        // 上传新图片（会自动注册回滚回调删除图片）
+        productImageService.saveProductImages(productId, request.getProductImageDetails());
+    }
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void onSale(Long productId, Long farmerId) {

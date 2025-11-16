@@ -32,6 +32,11 @@ public interface PurchaserInfoService extends IService<PurchaserInfo> {
     Page<PurchaserInfo> pagePurchasers(Integer current, Integer size, String auditStatus);
     
     /**
+     * 根据公司名称查询采购方
+     */
+    PurchaserInfo getByName(String name);
+    
+    /**
      * 修改采购方信息
      */
     void updatePurchaserInfo(Long purchaserId, Long userId, PurchaserInfoRequest request);

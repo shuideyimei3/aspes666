@@ -5,13 +5,17 @@ import cn.aspes.agri.trade.entity.PurchaseContract;
 import cn.aspes.agri.trade.entity.PurchaseOrder;
 import cn.aspes.agri.trade.entity.FarmerInfo;
 import cn.aspes.agri.trade.entity.PurchaserInfo;
+import cn.aspes.agri.trade.entity.PaymentRecord;
 import cn.aspes.agri.trade.enums.ContractStatus;
 import cn.aspes.agri.trade.enums.OrderStatus;
+import cn.aspes.agri.trade.enums.PaymentStatus;
 import cn.aspes.agri.trade.exception.BusinessException;
 import cn.aspes.agri.trade.mapper.PurchaseOrderMapper;
+import cn.aspes.agri.trade.mapper.PurchaseContractMapper;
 import cn.aspes.agri.trade.service.FarmerProductService;
 import cn.aspes.agri.trade.service.PurchaseContractService;
 import cn.aspes.agri.trade.service.PurchaseOrderService;
+import cn.aspes.agri.trade.service.PaymentRecordService;
 import cn.aspes.agri.trade.service.StockReservationService;
 import cn.aspes.agri.trade.service.FarmerInfoService;
 import cn.aspes.agri.trade.service.PurchaserInfoService;
@@ -24,6 +28,9 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,7 +49,9 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, PurchaseOrder> implements PurchaseOrderService {
+public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, PurchaseOrder> implements PurchaseOrderService, ApplicationContextAware {
+    
+    private ApplicationContext applicationContext;
     
     private final PurchaseContractService contractService;
     private final FarmerProductService productService;
@@ -52,8 +61,22 @@ public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, P
     private final FarmerInfoService farmerInfoService;
     private final PurchaserInfoService purchaserInfoService;
     private final ProductSnapshotUtil productSnapshotUtil;
+    private final PurchaseOrderMapper purchaseOrderMapper;
+    private final PurchaseContractMapper contractMapper;
     
     private static final String STOCK_LOCK_KEY = "stock:lock:";
+    
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
+    }
+    
+    /**
+     * 获取支付记录服务（延迟加载，避免循环依赖）
+     */
+    private PaymentRecordService getPaymentRecordService() {
+        return applicationContext.getBean(PaymentRecordService.class);
+    }
     
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -124,62 +147,62 @@ public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, P
         return order;
     }
     
+
+    
+    /**
+     * 订单完成
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void inspectOrder(Long orderId, Integer actualQuantity, String inspectionResult) {
+    public void completeOrder(Long orderId) {
+        // 1. 查询订单
         PurchaseOrder order = getById(orderId);
         if (order == null) {
             throw new BusinessException("订单不存在");
         }
         
-        if (order.getStatus() != OrderStatus.PENDING_INSPECTION) {
-            throw new BusinessException("只有待验收状态的订单才能验收");
+        // 2. 验证订单状态
+        if (order.getStatus() != OrderStatus.DELIVERED) {
+            throw new BusinessException("只有已交货的订单才能完成，当前订单状态：" + order.getStatus().getDesc());
         }
         
-        // ✅ 新增：验证合同状态，确保只有执行中的合同才能验收
+        // 3. 验证订单是否已支付全部金额
+        List<PaymentRecord> paymentRecords = getPaymentRecordService().listByOrder(orderId);
+        if (paymentRecords == null || paymentRecords.isEmpty()) {
+            throw new BusinessException("订单尚未支付，无法完成");
+        }
+        
+        // 计算已支付金额
+        BigDecimal paidAmount = paymentRecords.stream()
+            .filter(record -> record.getStatus() == PaymentStatus.SUCCESS)
+            .map(PaymentRecord::getAmount)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+        // 比较已支付金额与订单总金额
+        if (paidAmount.compareTo(order.getTotalAmount()) < 0) {
+            throw new BusinessException("订单尚未支付全部金额，已支付：" + paidAmount + "，需支付：" + order.getTotalAmount());
+        }
+        
+        // 4. 查询合同
         PurchaseContract contract = contractService.getById(order.getContractId());
         if (contract == null) {
             throw new BusinessException("关联合同不存在");
         }
-        if (contract.getStatus() != ContractStatus.EXECUTING) {
-            throw new BusinessException("只有执行中的合同才能进行验收，当前合同状态=" + contract.getStatus());
-        }
         
-        // 获取产品信息
-        Map<String, Object> productInfo = order.getProductInfo();
-        // 使用productId字段而不是从productInfo中获取
-        Long productId = order.getProductId();
-        
-        // ✅ 修复：订单验收时仅更新订单信息，不扣减库存
-        // 库存扣减延迟到支付成功时，避免双重扣减
-        BigDecimal unitPrice = new BigDecimal(productInfo.get("price").toString());
-        order.setActualQuantity(actualQuantity);
-        order.setActualAmount(unitPrice.multiply(new BigDecimal(actualQuantity)));
-        order.setInspectionResult(inspectionResult);
-        order.setDeliveryTime(LocalDateTime.now());
-        order.setStatus(OrderStatus.DELIVERED);
-        
-        updateById(order);
-    }
-    
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void completeOrder(Long orderId) {
-        PurchaseOrder order = getById(orderId);
-        if (order == null) {
-            throw new BusinessException("订单不存在");
-        }
-        
-        if (order.getStatus() != OrderStatus.PAID) {
-            throw new BusinessException("只有已支付的订单才能完成");
-        }
-        
+        // 5. 更新订单状态
         order.setStatus(OrderStatus.COMPLETED);
         updateById(order);
         
-        // 更新合同状态
-        PurchaseContract contract = contractService.getById(order.getContractId());
-        if (contract != null) {
+        // 6. 检查合同下所有订单是否都已完成，如果是，则更新合同状态为已完成
+        List<PurchaseOrder> contractOrders = list(
+            new LambdaQueryWrapper<PurchaseOrder>()
+                .eq(PurchaseOrder::getContractId, contract.getId())
+        );
+        
+        boolean allCompleted = contractOrders.stream()
+            .allMatch(o -> o.getStatus() == OrderStatus.COMPLETED || o.getStatus() == OrderStatus.CANCELLED);
+            
+        if (allCompleted) {
             contract.setStatus(ContractStatus.COMPLETED);
             contractService.updateById(contract);
         }
@@ -288,5 +311,41 @@ public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, P
         String timestamp = DateUtil.format(LocalDateTime.now(), "yyyyMMddHHmmss");
         int randomNum = (int) (Math.random() * 9000) + 1000; // 生成4位随机数
         return "ORD" + timestamp + randomNum;
+    }
+    
+    /**
+     * 农户交货
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deliverOrder(Long orderId, Integer actualQuantity, String inspectionResult) {
+        // 1. 查询订单
+        PurchaseOrder order = getById(orderId);
+        if (order == null) {
+            throw new BusinessException("订单不存在");
+        }
+        
+        // 2. 验证订单状态
+        if (order.getStatus() != OrderStatus.PAID) {
+            throw new BusinessException("只有已支付的订单才能交货，当前订单状态：" + order.getStatus().getDesc());
+        }
+        
+        // 3. 查询合同
+        PurchaseContract contract = contractService.getById(order.getContractId());
+        if (contract == null) {
+            throw new BusinessException("关联合同不存在");
+        }
+        
+        // 4. 验证合同状态
+        if (contract.getStatus() != ContractStatus.EXECUTING) {
+            throw new BusinessException("只有执行中的合同才能交货，当前合同状态：" + contract.getStatus().getDesc());
+        }
+        
+        // 5. 更新订单信息
+        order.setActualQuantity(actualQuantity);
+        order.setInspectionResult(inspectionResult);
+        order.setDeliveryTime(LocalDateTime.now());
+        order.setStatus(OrderStatus.DELIVERED);
+        updateById(order);
     }
 }

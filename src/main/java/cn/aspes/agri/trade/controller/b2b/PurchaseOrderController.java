@@ -1,18 +1,20 @@
 package cn.aspes.agri.trade.controller.b2b;
 
 import cn.aspes.agri.trade.common.Result;
+import cn.aspes.agri.trade.dto.OrderDeliveryRequest;
 import cn.aspes.agri.trade.entity.PurchaseOrder;
 import cn.aspes.agri.trade.security.CustomUserDetails;
+import cn.aspes.agri.trade.service.FarmerInfoService;
 import cn.aspes.agri.trade.service.PurchaseOrderService;
+import cn.aspes.agri.trade.service.PurchaserInfoService;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
+import jakarta.annotation.Resource;
+import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * B端 - 采购订单管理控制器
@@ -20,10 +22,16 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 @Tag(name = "B端 - 采购订单")
 @RestController
 @RequestMapping("/api/b2b/orders")
-@RequiredArgsConstructor
 public class PurchaseOrderController {
     
-    private final PurchaseOrderService orderService;
+    @Resource
+    private PurchaseOrderService orderService;
+    
+    @Resource
+    private PurchaserInfoService purchaserInfoService;
+    
+    @Resource
+    private FarmerInfoService farmerInfoService;
     
     @Operation(summary = "分页查询订单")
     @GetMapping("/page")
@@ -58,5 +66,40 @@ public class PurchaseOrderController {
     @GetMapping("/{id}")
     public Result<PurchaseOrder> getDetail(@PathVariable Long id) {
         return Result.success(orderService.getOrderDetail(id));
+    }
+    
+    @Operation(summary = "农户交货")
+    @PostMapping("/{id}/deliver")
+    @PreAuthorize("hasRole('FARMER')")
+    public Result<Void> deliverOrder(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody OrderDeliveryRequest request) {
+        // 验证当前用户是否有权限操作该订单
+        Long farmerId = farmerInfoService.getByUserId(userDetails.getId()).getId();
+        PurchaseOrder order = orderService.getOrderDetail(id);
+        if (order == null || !order.getFarmerId().equals(farmerId)) {
+            throw new RuntimeException("无权限操作此订单");
+        }
+        
+        orderService.deliverOrder(id, request.getActualQuantity(), request.getInspectionResult());
+        return Result.success();
+    }
+    
+    @Operation(summary = "采购方确认订单")
+    @PostMapping("/{id}/complete")
+    @PreAuthorize("hasRole('PURCHASER')")
+    public Result<Void> completeOrder(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        // 验证当前用户是否有权限操作该订单
+        Long purchaserId = purchaserInfoService.getByUserId(userDetails.getId()).getId();
+        PurchaseOrder order = orderService.getOrderDetail(id);
+        if (order == null || !order.getPurchaserId().equals(purchaserId)) {
+            throw new RuntimeException("无权限操作此订单");
+        }
+        
+        orderService.completeOrder(id);
+        return Result.success();
     }
 }

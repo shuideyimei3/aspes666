@@ -17,6 +17,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.annotation.Resource;
@@ -138,8 +140,34 @@ public class PurchaseContractServiceImpl extends ServiceImpl<PurchaseContractMap
             throw new BusinessException("签署时必须提供签字文件");
         }
         
-        // 上传签字文件
-        String signUrl = fileUploadService.uploadContractSign(signFile);
+        // 在事务外上传文件，避免文件上传异常污染数据库事务
+        String signUrl = null;
+        try {
+            signUrl = fileUploadService.uploadContractSign(signFile);
+        } catch (Exception e) {
+            log.warn("合同签字文件上传失败，合同={}, 错误={}", contractId, e.getMessage());
+            throw new BusinessException("签字文件上传失败：" + e.getMessage());
+        }
+        
+        // 在事务中处理签署逆辑
+        signContractInternal(contractId, userId, signUrl, role);
+    }
+    
+    /**
+     * 内部方法：在事务中处理合同签署（已提前上传文件）
+     * 如果事务回滚，会自动删除已上传的文件
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void signContractInternal(Long contractId, Long userId, String signUrl, String role) {
+        // 注册事务回滚时的文件删除回调
+        if (signUrl != null && TransactionSynchronizationManager.isActualTransactionActive()) {
+            registerFileDeleteOnRollback(signUrl);
+        }
+        
+        PurchaseContract contract = getById(contractId);
+        if (contract == null) {
+            throw new BusinessException("合同不存在");
+        }
         
         // 根据角色更新签字文件
         if ("farmer".equalsIgnoreCase(role)) {
@@ -162,6 +190,26 @@ public class PurchaseContractServiceImpl extends ServiceImpl<PurchaseContractMap
         }
         
         updateById(contract);
+    }
+    
+    /**
+     * 注册事务回滚时的文件删除回调
+     */
+    private void registerFileDeleteOnRollback(String fileUrl) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCompletion(int status) {
+                // status = TransactionSynchronization.STATUS_ROLLED_BACK 表示事务已回滚
+                if (status == STATUS_ROLLED_BACK) {
+                    try {
+                        fileUploadService.deleteFile(fileUrl);
+                        log.info("事务回滚：已自动删除上传的签幺文件，URL={}", fileUrl);
+                    } catch (Exception e) {
+                        log.error("事务回滚时删除文件失败，URL={}", fileUrl, e);
+                    }
+                }
+            }
+        });
     }
     
     @Override
@@ -202,9 +250,6 @@ public class PurchaseContractServiceImpl extends ServiceImpl<PurchaseContractMap
         }
         return prefix + String.format("%04d", sequence);
     }
-    /**
-     * 撒回合同
-     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void withdrawContract(Long contractId, Long userId, String reason) {
@@ -216,6 +261,9 @@ public class PurchaseContractServiceImpl extends ServiceImpl<PurchaseContractMap
         if (contract.getStatus() != ContractStatus.DRAFT) {
             throw new BusinessException("只有草稿中的合同才能撤回");
         }
+        
+        // 删除已上传的签字文件
+        deleteContractSignFiles(contract);
         
         contract.setStatus(ContractStatus.TERMINATED);
         updateById(contract);
@@ -249,6 +297,9 @@ public class PurchaseContractServiceImpl extends ServiceImpl<PurchaseContractMap
             throw new BusinessException("已完成或已终止的合同无法终止");
         }
         
+        // 删除已上传的签字文件
+        deleteContractSignFiles(contract);
+        
         contract.setStatus(ContractStatus.TERMINATED);
         updateById(contract);
         
@@ -271,6 +322,31 @@ public class PurchaseContractServiceImpl extends ServiceImpl<PurchaseContractMap
             }
         } catch (Exception e) {
             log.warn("下查合同订单时出错，合同={}", contractId, e);
+        }
+    }
+    
+    /**
+     * 删除合同的签字文件
+     */
+    private void deleteContractSignFiles(PurchaseContract contract) {
+        // 删除农户签字文件
+        if (contract.getFarmerSignUrl() != null && !contract.getFarmerSignUrl().isEmpty()) {
+            try {
+                fileUploadService.deleteFile(contract.getFarmerSignUrl());
+                log.info("已删除农户签字文件，URL={}", contract.getFarmerSignUrl());
+            } catch (Exception e) {
+                log.error("删除农户签字文件失败，URL={}", contract.getFarmerSignUrl(), e);
+            }
+        }
+        
+        // 删除采购方签字文件
+        if (contract.getPurchaserSignUrl() != null && !contract.getPurchaserSignUrl().isEmpty()) {
+            try {
+                fileUploadService.deleteFile(contract.getPurchaserSignUrl());
+                log.info("已删除采购方签字文件，URL={}", contract.getPurchaserSignUrl());
+            } catch (Exception e) {
+                log.error("删除采购方签字文件失败，URL={}", contract.getPurchaserSignUrl(), e);
+            }
         }
     }
     
