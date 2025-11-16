@@ -17,6 +17,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -122,7 +123,7 @@ public class PurchaseContractServiceImpl extends ServiceImpl<PurchaseContractMap
     
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void signContract(Long contractId, Long userId, ContractRequest request, String role) {
+    public void signContract(Long contractId, Long userId, MultipartFile signFile, String role) {
         PurchaseContract contract = getById(contractId);
         if (contract == null) {
             throw new BusinessException("合同不存在");
@@ -133,12 +134,12 @@ public class PurchaseContractServiceImpl extends ServiceImpl<PurchaseContractMap
         }
         
         // 校验签字文件
-        if (request.getSignFile() == null || request.getSignFile().isEmpty()) {
-            throw new BusinessException("签录时必须提供签字文件");
+        if (signFile == null || signFile.isEmpty()) {
+            throw new BusinessException("签署时必须提供签字文件");
         }
         
         // 上传签字文件
-        String signUrl = fileUploadService.uploadContractSign(request.getSignFile());
+        String signUrl = fileUploadService.uploadContractSign(signFile);
         
         // 根据角色更新签字文件
         if ("farmer".equalsIgnoreCase(role)) {

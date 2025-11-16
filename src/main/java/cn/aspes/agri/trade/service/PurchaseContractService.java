@@ -5,6 +5,7 @@ import cn.aspes.agri.trade.entity.PurchaseContract;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 采购合同服务接口
@@ -19,7 +20,7 @@ public interface PurchaseContractService extends IService<PurchaseContract> {
     /**
      * 签署合同
      */
-    void signContract(Long contractId, Long userId, ContractRequest request, String role);
+    void signContract(Long contractId, Long userId, MultipartFile signFile, String role);
     
     /**
      * 查询我的合同列表

@@ -46,12 +46,9 @@ public class PurchaseContractController {
     @PutMapping(value = "/{contractId}/sign", consumes = {"multipart/form-data"})
     public Result<Void> signContract(@PathVariable Long contractId,
                                       @AuthenticationPrincipal CustomUserDetails userDetails,
-                                      @RequestPart(value = "signFile", required = true) MultipartFile signFile,
-                                      @Valid @ModelAttribute ContractRequest request) {
-        // 将文件设置到请求对象中
-        request.setSignFile(signFile);
+                                      @RequestPart(value = "signFile", required = true) MultipartFile signFile) {
         String role = userDetails.getRole() == UserRole.FARMER ? "farmer" : "purchaser";
-        purchaseContractService.signContract(contractId, userDetails.getId(), request, role);
+        purchaseContractService.signContract(contractId, userDetails.getId(), signFile, role);
         return Result.success();
     }
     
