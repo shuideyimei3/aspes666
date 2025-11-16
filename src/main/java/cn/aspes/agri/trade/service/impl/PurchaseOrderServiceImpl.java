@@ -143,7 +143,11 @@ public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, P
             throw new BusinessException("库存不足，无法创建订单");
         }
         
-        log.info("订单创建成功，订单ID: {}, 订单号: {}", order.getId(), order.getOrderNo());
+        // 7. 更新合同状态为执行中
+        contract.setStatus(ContractStatus.EXECUTING);
+        contractService.updateById(contract);
+        
+        log.info("订单创建成功，订单ID: {}, 订单号: {}, 合同状态已更新为执行中", order.getId(), order.getOrderNo());
         return order;
     }
     

@@ -15,6 +15,9 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -35,7 +38,8 @@ import java.util.Map;
  */
 @Slf4j
 @Service
-public class PurchaseContractServiceImpl extends ServiceImpl<PurchaseContractMapper, PurchaseContract> implements PurchaseContractService {
+public class PurchaseContractServiceImpl extends ServiceImpl<PurchaseContractMapper, PurchaseContract> 
+        implements PurchaseContractService, ApplicationContextAware {
     
     @Resource
     private DockingRecordService dockingRecordService;
@@ -61,6 +65,13 @@ public class PurchaseContractServiceImpl extends ServiceImpl<PurchaseContractMap
     
     @Resource
     private ProductSnapshotUtil productSnapshotUtil;
+    
+    private ApplicationContext applicationContext;
+    
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+    }
     
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -184,12 +195,24 @@ public class PurchaseContractServiceImpl extends ServiceImpl<PurchaseContractMap
             contract.setPurchaserSignUrl(signUrl);
         }
         
-        // 如果双方都已签署，更新状态为已签署
+        // 如果双方都已签署，更新状态为已签署，并自动创建订单
         if (contract.getFarmerSignUrl() != null && contract.getPurchaserSignUrl() != null) {
             contract.setStatus(ContractStatus.SIGNED);
+            updateById(contract);
+            
+            // 自动基于合同创建订单
+            // 由于存在循环依赖问题，我们需要通过Spring上下文获取PurchaseOrderService
+            try {
+                PurchaseOrderService purchaseOrderService = applicationContext.getBean(PurchaseOrderService.class);
+                purchaseOrderService.createOrderFromContract(contractId);
+                log.info("合同双方签署完成，已自动创建订单，合同ID: {}", contractId);
+            } catch (Exception e) {
+                log.error("基于合同创建订单失败，合同ID: {}", contractId, e);
+                throw new BusinessException("合同签署成功，但自动创建订单失败：" + e.getMessage());
+            }
+        } else {
+            updateById(contract);
         }
-        
-        updateById(contract);
     }
     
     /**
