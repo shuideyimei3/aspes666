@@ -39,13 +39,7 @@ public class PaymentController {
         return Result.success(paymentId);
     }
     
-    @Operation(summary = "确认支付")
-    @PutMapping("/{paymentId}/confirm")
-    public Result<Void> confirmPayment(@PathVariable Long paymentId,
-                                        @RequestParam String paymentNo) {
-        paymentRecordService.confirmPayment(paymentId, paymentNo);
-        return Result.success();
-    }
+
     
     @Operation(summary = "分页查询支付记录")
     @GetMapping("/page")
@@ -57,12 +51,7 @@ public class PaymentController {
         return Result.success(paymentRecordService.pagePayments(current, size, orderId, status));
     }
     
-    @Operation(summary = "标记支付失败")
-    @PutMapping("/{paymentId}/fail")
-    public Result<Void> markFailed(@PathVariable Long paymentId, @RequestParam String reason) {
-        paymentRecordService.markPaymentFailed(paymentId, reason);
-        return Result.success();
-    }
+
     
     @Operation(summary = "查询我的支付记录")
     @GetMapping("/my")
