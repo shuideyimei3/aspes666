@@ -101,7 +101,13 @@ public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, P
         order.setStatus(OrderStatus.PENDING_INSPECTION);
         order.setRemark("从合同创建订单");
         
-        // 5. 预留库存
+        // 5. 先保存订单到数据库
+        boolean saved = save(order);
+        if (!saved) {
+            throw new BusinessException("订单创建失败");
+        }
+        
+        // 6. 再预留库存
         boolean stockReserved = stockReservationService.reserveStock(
             product.getId(), 
             contract.getQuantity(), 
@@ -109,15 +115,9 @@ public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, P
         );
         
         if (!stockReserved) {
+            // 如果库存预留失败，删除已创建的订单
+            removeById(order.getId());
             throw new BusinessException("库存不足，无法创建订单");
-        }
-        
-        // 6. 保存订单
-        boolean saved = save(order);
-        if (!saved) {
-            // 如果保存失败，释放预留库存
-            stockReservationService.releaseStock(product.getId(), order.getId());
-            throw new BusinessException("订单创建失败");
         }
         
         log.info("订单创建成功，订单ID: {}, 订单号: {}", order.getId(), order.getOrderNo());
