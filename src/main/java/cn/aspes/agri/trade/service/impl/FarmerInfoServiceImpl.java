@@ -10,23 +10,27 @@ import cn.aspes.agri.trade.exception.BusinessException;
 import cn.aspes.agri.trade.mapper.FarmerInfoMapper;
 import cn.aspes.agri.trade.mapper.UserMapper;
 import cn.aspes.agri.trade.service.FarmerInfoService;
+import cn.aspes.agri.trade.service.FileUploadService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.annotation.Resource;
+import java.time.LocalDateTime;
 
 /**
  * 农户信息服务实现
  */
 @Service
+@RequiredArgsConstructor
 public class FarmerInfoServiceImpl extends ServiceImpl<FarmerInfoMapper, FarmerInfo> implements FarmerInfoService {
     
-    @Resource
-    private UserMapper userMapper;
+    private final UserMapper userMapper;
+    private final FileUploadService fileUploadService;
     
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -46,11 +50,33 @@ public class FarmerInfoServiceImpl extends ServiceImpl<FarmerInfoMapper, FarmerI
             throw new BusinessException("农户信息已存在，请勿重复提交");
         }
         
+        // 上传身份证正面照
+        MultipartFile idCardFrontFile = request.getIdCardFrontFile();
+        String idCardFrontUrl = null;
+        if (idCardFrontFile != null && !idCardFrontFile.isEmpty()) {
+            idCardFrontUrl = fileUploadService.uploadIdCardFront(idCardFrontFile);
+        }
+        
+        // 上传身份证反面照
+        MultipartFile idCardBackFile = request.getIdCardBackFile();
+        String idCardBackUrl = null;
+        if (idCardBackFile != null && !idCardBackFile.isEmpty()) {
+            idCardBackUrl = fileUploadService.uploadIdCardBack(idCardBackFile);
+        }
+        
         // 创建农户信息（包含认证信息）
         FarmerInfo farmerInfo = new FarmerInfo();
         BeanUtils.copyProperties(request, farmerInfo);
         farmerInfo.setUserId(userId);
         farmerInfo.setAuditStatus(AuditStatus.PENDING);
+        
+        // 设置上传后的URL
+        if (idCardFrontUrl != null) {
+            farmerInfo.setIdCardFrontUrl(idCardFrontUrl);
+        }
+        if (idCardBackUrl != null) {
+            farmerInfo.setIdCardBackUrl(idCardBackUrl);
+        }
         
         save(farmerInfo);
     }

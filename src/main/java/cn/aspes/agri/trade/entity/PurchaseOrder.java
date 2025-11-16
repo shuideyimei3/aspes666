@@ -23,8 +23,20 @@ public class PurchaseOrder {
     
     private Long contractId;
     
+    private Long productId;
+    
     @TableField(typeHandler = JacksonTypeHandler.class)
     private Map<String, Object> productInfo;
+    
+    private Integer quantity;
+    
+    private BigDecimal totalAmount;
+    
+    private Long farmerId;
+    
+    private Long purchaserId;
+    
+    private String remark;
     
     private Integer actualQuantity;
     

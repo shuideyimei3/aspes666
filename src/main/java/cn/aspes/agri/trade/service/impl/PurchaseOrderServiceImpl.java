@@ -15,6 +15,7 @@ import cn.aspes.agri.trade.service.PurchaseOrderService;
 import cn.aspes.agri.trade.service.StockReservationService;
 import cn.aspes.agri.trade.service.FarmerInfoService;
 import cn.aspes.agri.trade.service.PurchaserInfoService;
+import cn.aspes.agri.trade.util.ProductSnapshotUtil;
 import cn.aspes.agri.trade.util.SnowflakeIdGenerator;
 import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -50,55 +51,77 @@ public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, P
     private final StringRedisTemplate redisTemplate;
     private final FarmerInfoService farmerInfoService;
     private final PurchaserInfoService purchaserInfoService;
+    private final ProductSnapshotUtil productSnapshotUtil;
     
     private static final String STOCK_LOCK_KEY = "stock:lock:";
     
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void createOrderFromContract(Long contractId) {
-        // 查询合同
+    public PurchaseOrder createOrderFromContract(Long contractId) {
+        log.info("从合同创建订单，合同ID: {}", contractId);
+        
+        // 1. 获取合同信息
         PurchaseContract contract = contractService.getById(contractId);
         if (contract == null) {
             throw new BusinessException("合同不存在");
         }
         
-        if (contract.getStatus() != ContractStatus.SIGNED) {
-            throw new BusinessException("只有已签署的合同才能生成订单");
+        if (!ContractStatus.SIGNED.equals(contract.getStatus())) {
+            throw new BusinessException("合同未签署，无法创建订单");
         }
         
-        // 检查是否已生成订单
-        long count = count(new LambdaQueryWrapper<PurchaseOrder>()
-                .eq(PurchaseOrder::getContractId, contractId));
-        if (count > 0) {
-            throw new BusinessException("该合同已生成订单");
+        // 检查是否已存在订单
+        LambdaQueryWrapper<PurchaseOrder> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(PurchaseOrder::getContractId, contractId);
+        PurchaseOrder existingOrder = getOne(queryWrapper);
+        if (existingOrder != null) {
+            throw new BusinessException("该合同已创建订单");
         }
         
-        // 创建订单
+        // 2. 根据productId获取产品信息
+        FarmerProduct product = productService.getProductById(contract.getProductId());
+        if (product == null) {
+            throw new BusinessException("产品不存在");
+        }
+        
+        // 3. 创建产品快照
+        Map<String, Object> productInfo = productSnapshotUtil.createProductSnapshot(product);
+        
+        // 4. 创建订单
         PurchaseOrder order = new PurchaseOrder();
         order.setId(idGenerator.nextId());
-        order.setOrderNo("ORD" + DateUtil.format(LocalDateTime.now(), "yyyyMMddHHmmss") + contractId);
+        order.setOrderNo(generateOrderNo());
         order.setContractId(contractId);
-        order.setProductInfo(contract.getProductInfo());
-        order.setStatus(OrderStatus.PENDING);
+        order.setProductId(contract.getProductId());
+        order.setProductInfo(productInfo);
+        order.setQuantity(contract.getQuantity());
+        order.setTotalAmount(contract.getTotalAmount());
+        order.setFarmerId(product.getFarmerId());
+        order.setPurchaserId(contract.getPurchaserId());
+        order.setStatus(OrderStatus.PENDING_INSPECTION);
+        order.setRemark("从合同创建订单");
         
-        save(order);
+        // 5. 预留库存
+        boolean stockReserved = stockReservationService.reserveStock(
+            product.getId(), 
+            contract.getQuantity(), 
+            order.getId()
+        );
         
-        // 创建订单后预留库存
-        Map<String, Object> productInfo = contract.getProductInfo();
-        if (productInfo != null && productInfo.containsKey("productId")) {
-            try {
-                Long productId = Long.valueOf(productInfo.get("productId").toString());
-                Integer quantity = Integer.valueOf(productInfo.get("quantity").toString());
-                stockReservationService.reserveStock(order.getId(), productId, quantity);
-            } catch (Exception e) {
-                // 库存预留失败不影响订单创建，只记录日志
-                e.printStackTrace();
-            }
+        if (!stockReserved) {
+            throw new BusinessException("库存不足，无法创建订单");
         }
         
-        // 更新合同状态
-        contract.setStatus(ContractStatus.EXECUTING);
-        contractService.updateById(contract);
+        // 6. 保存订单
+        boolean saved = save(order);
+        if (!saved) {
+            // 如果保存失败，释放预留库存
+            stockReservationService.releaseStock(product.getId(), order.getId());
+            throw new BusinessException("订单创建失败");
+        }
+        
+        log.info("订单创建成功，订单ID: {}, 订单号: {}", order.getId(), order.getOrderNo());
+        return order;
     }
     
     @Override
@@ -109,8 +132,8 @@ public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, P
             throw new BusinessException("订单不存在");
         }
         
-        if (order.getStatus() != OrderStatus.PENDING) {
-            throw new BusinessException("只有待交货状态的订单才能验收");
+        if (order.getStatus() != OrderStatus.PENDING_INSPECTION) {
+            throw new BusinessException("只有待验收状态的订单才能验收");
         }
         
         // ✅ 新增：验证合同状态，确保只有执行中的合同才能验收
@@ -124,7 +147,8 @@ public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, P
         
         // 获取产品信息
         Map<String, Object> productInfo = order.getProductInfo();
-        Long productId = Long.valueOf(productInfo.get("productId").toString());
+        // 使用productId字段而不是从productInfo中获取
+        Long productId = order.getProductId();
         
         // ✅ 修复：订单验收时仅更新订单信息，不扣减库存
         // 库存扣减延迟到支付成功时，避免双重扣减
@@ -177,7 +201,8 @@ public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, P
         updateById(order);
         
         // 取消订单时释放库存预留
-        stockReservationService.releaseReservation(orderId, reason);
+        // 使用productId字段而不是从productInfo中获取
+        stockReservationService.releaseStock(order.getProductId(), orderId);
     }
     
     @Override
@@ -253,5 +278,15 @@ public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, P
     @Override
     public PurchaseOrder getOrderDetail(Long orderId) {
         return getById(orderId);
+    }
+    
+    /**
+     * 生成订单号
+     * 格式: ORD + 年月日时分秒 + 4位随机数
+     */
+    private String generateOrderNo() {
+        String timestamp = DateUtil.format(LocalDateTime.now(), "yyyyMMddHHmmss");
+        int randomNum = (int) (Math.random() * 9000) + 1000; // 生成4位随机数
+        return "ORD" + timestamp + randomNum;
     }
 }

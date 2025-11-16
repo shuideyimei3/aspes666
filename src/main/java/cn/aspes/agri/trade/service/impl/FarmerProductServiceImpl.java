@@ -213,4 +213,9 @@ public class FarmerProductServiceImpl extends ServiceImpl<FarmerProductMapper, F
         FarmerProduct product = getById(productId);
         return product != null && product.getFarmerId().equals(farmerId);
     }
+    
+    @Override
+    public FarmerProduct getProductById(Long productId) {
+        return getById(productId);
+    }
 }

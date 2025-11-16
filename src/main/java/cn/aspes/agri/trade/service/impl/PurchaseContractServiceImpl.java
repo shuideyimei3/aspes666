@@ -9,6 +9,7 @@ import cn.aspes.agri.trade.exception.BusinessException;
 import cn.aspes.agri.trade.mapper.PurchaseContractMapper;
 import cn.aspes.agri.trade.mapper.PurchaseOrderMapper;
 import cn.aspes.agri.trade.service.*;
+import cn.aspes.agri.trade.util.ProductSnapshotUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -52,6 +53,12 @@ public class PurchaseContractServiceImpl extends ServiceImpl<PurchaseContractMap
     @Resource
     private FileUploadService fileUploadService;
     
+    @Resource
+    private FarmerProductService farmerProductService;
+    
+    @Resource
+    private ProductSnapshotUtil productSnapshotUtil;
+    
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Long createContract(Long userId, ContractRequest request) {
@@ -79,10 +86,20 @@ public class PurchaseContractServiceImpl extends ServiceImpl<PurchaseContractMap
         
         FarmerInfo farmerInfo = farmerInfoService.getById(docking.getFarmerId());
         
+        // 根据产品ID获取产品信息
+        FarmerProduct product = farmerProductService.getProductById(request.getProductId());
+        if (product == null) {
+            throw new BusinessException("产品不存在");
+        }
+        
+        // 创建产品信息快照
+        Map<String, Object> productSnapshot = productSnapshotUtil.createProductSnapshot(product);
+        
+        // 从请求中获取数量
+        Integer quantity = request.getQuantity();
+        
         // 计算合同总金额
-        Map<String, Object> productInfo = request.getProductInfo();
-        BigDecimal price = new BigDecimal(productInfo.get("price").toString());
-        Integer quantity = Integer.parseInt(productInfo.get("quantity").toString());
+        BigDecimal price = product.getPrice();
         BigDecimal totalAmount = price.multiply(new BigDecimal(quantity));
         
         // 生成合同编号：C + 日期 + 四位流水号
@@ -94,7 +111,8 @@ public class PurchaseContractServiceImpl extends ServiceImpl<PurchaseContractMap
         contract.setContractNo(contractNo);
         contract.setPurchaserId(purchaserInfo.getId());
         contract.setFarmerId(docking.getFarmerId());
-        contract.setProductInfo(productInfo);
+        contract.setProductId(request.getProductId());
+        contract.setProductInfo(productSnapshot);
         contract.setTotalAmount(totalAmount);
         contract.setStatus(ContractStatus.DRAFT);
         

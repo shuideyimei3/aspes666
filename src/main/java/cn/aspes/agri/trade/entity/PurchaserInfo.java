@@ -24,7 +24,7 @@ public class PurchaserInfo {
     
     private String companyType;
     
-    private String businessLicense;
+    private String businessLicenseUrl;
     
     private String purchaseScale;
     

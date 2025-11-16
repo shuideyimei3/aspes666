@@ -74,9 +74,7 @@ public class DockingRecordController {
                                                         @RequestParam(defaultValue = "1") int pageNum,
                                                         @RequestParam(defaultValue = "10") int pageSize) {
         String role = userDetails.getRole() == UserRole.FARMER ? "farmer" : "purchaser";
-        Long userId = userDetails.getRole() == UserRole.FARMER ?
-                farmerInfoService.getByUserId(userDetails.getId()).getId() :
-                purchaserInfoService.getByUserId(userDetails.getId()).getId();
+        Long userId = userDetails.getId();
         IPage<DockingRecord> page = dockingRecordService.listMyDockings(userId, role, pageNum, pageSize);
         IPage<DockingRecordVO> voPage = entityVOConverter.toDockingRecordVOPage(page);
         return Result.success(voPage);

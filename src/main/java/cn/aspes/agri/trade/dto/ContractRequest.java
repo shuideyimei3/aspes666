@@ -17,8 +17,11 @@ public class ContractRequest {
     @NotNull(message = "对接记录ID不能为空")
     private Long dockingId;
     
-    @NotNull(message = "产品信息不能为空")
-    private Map<String, Object> productInfo;
+    @NotNull(message = "产品ID不能为空")
+    private Long productId;
+    
+    @NotNull(message = "产品数量不能为空")
+    private Integer quantity;
     
     @NotBlank(message = "付款方式不能为空")
     private String paymentTerms;

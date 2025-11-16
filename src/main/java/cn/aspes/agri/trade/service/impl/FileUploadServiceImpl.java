@@ -76,6 +76,21 @@ public class FileUploadServiceImpl implements FileUploadService {
     }
     
     @Override
+    public String uploadIdCardFront(MultipartFile file) {
+        return uploadFile(file, "id-card-front");
+    }
+    
+    @Override
+    public String uploadIdCardBack(MultipartFile file) {
+        return uploadFile(file, "id-card-back");
+    }
+    
+    @Override
+    public String uploadBusinessLicense(MultipartFile file) {
+        return uploadFile(file, "business-license");
+    }
+    
+    @Override
     public void deleteFile(String fileUrl) {
         try {
             // 从URL解析出objectName

@@ -60,4 +60,11 @@ public interface FarmerProductService extends IService<FarmerProduct> {
      * 验证产品是否属于指定农户
      */
     boolean isProductOwner(Long productId, Long farmerId);
+    
+    /**
+     * 根据产品ID获取产品信息
+     * @param productId 产品ID
+     * @return 产品信息
+     */
+    FarmerProduct getProductById(Long productId);
 }

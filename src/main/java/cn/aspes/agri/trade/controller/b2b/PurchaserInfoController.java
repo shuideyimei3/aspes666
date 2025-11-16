@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * B端 - 采购方信息管理控制器
@@ -27,8 +28,13 @@ public class PurchaserInfoController {
     
     @Operation(summary = "提交采购方信息")
     @PostMapping
+    @PreAuthorize("hasRole('PURCHASER')")
     public Result<Void> submitPurchaserInfo(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                            @Valid @RequestBody PurchaserInfoRequest request) {
+                                            @RequestPart(value = "businessLicenseFile", required = true) MultipartFile businessLicenseFile,
+                                            @Valid @ModelAttribute PurchaserInfoRequest request) {
+        // 设置上传的文件
+        request.setBusinessLicenseFile(businessLicenseFile);
+        
         purchaserInfoService.submitPurchaserInfo(userDetails.getId(), request);
         return Result.success();
     }

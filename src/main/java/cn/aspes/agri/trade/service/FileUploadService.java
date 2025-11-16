@@ -37,6 +37,27 @@ public interface FileUploadService {
     String uploadPaymentVoucher(MultipartFile file);
     
     /**
+     * 上传身份证正面照
+     * @param file 身份证正面照文件
+     * @return 图片URL
+     */
+    String uploadIdCardFront(MultipartFile file);
+    
+    /**
+     * 上传身份证反面照
+     * @param file 身份证反面照文件
+     * @return 图片URL
+     */
+    String uploadIdCardBack(MultipartFile file);
+    
+    /**
+     * 上传营业执照
+     * @param file 营业执照文件
+     * @return 文件URL
+     */
+    String uploadBusinessLicense(MultipartFile file);
+    
+    /**
      * 删除文件
      * @param fileUrl 文件URL
      */

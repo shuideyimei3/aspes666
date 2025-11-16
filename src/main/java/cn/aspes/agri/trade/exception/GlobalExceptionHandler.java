@@ -6,6 +6,7 @@ import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 /**
  * 全局异常处理器
@@ -39,6 +40,16 @@ public class GlobalExceptionHandler {
             }
         }
         log.error("参数校验异常: {}", message);
+        return Result.error(400, message);
+    }
+    
+    /**
+     * 处理缺失multipart部分异常
+     */
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    public Result<?> handleMissingServletRequestPartException(MissingServletRequestPartException e) {
+        String message = "缺失必要的文件或表单部分: " + e.getRequestPartName();
+        log.error(message);
         return Result.error(400, message);
     }
     

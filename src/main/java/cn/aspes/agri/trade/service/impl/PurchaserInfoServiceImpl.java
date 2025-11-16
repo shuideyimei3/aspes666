@@ -10,23 +10,27 @@ import cn.aspes.agri.trade.exception.BusinessException;
 import cn.aspes.agri.trade.mapper.PurchaserInfoMapper;
 import cn.aspes.agri.trade.mapper.UserMapper;
 import cn.aspes.agri.trade.service.PurchaserInfoService;
+import cn.aspes.agri.trade.service.FileUploadService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.annotation.Resource;
+import java.time.LocalDateTime;
 
 /**
  * 采购方信息服务实现
  */
 @Service
+@RequiredArgsConstructor
 public class PurchaserInfoServiceImpl extends ServiceImpl<PurchaserInfoMapper, PurchaserInfo> implements PurchaserInfoService {
     
-    @Resource
-    private UserMapper userMapper;
+    private final UserMapper userMapper;
+    private final FileUploadService fileUploadService;
     
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -46,11 +50,23 @@ public class PurchaserInfoServiceImpl extends ServiceImpl<PurchaserInfoMapper, P
             throw new BusinessException("采购方信息已存在，请勿重复提交");
         }
         
+        // 上传营业执照
+        MultipartFile businessLicenseFile = request.getBusinessLicenseFile();
+        String businessLicenseUrl = null;
+        if (businessLicenseFile != null && !businessLicenseFile.isEmpty()) {
+            businessLicenseUrl = fileUploadService.uploadBusinessLicense(businessLicenseFile);
+        }
+        
         // 创建采购方信息（包含认证信息）
         PurchaserInfo purchaserInfo = new PurchaserInfo();
         BeanUtils.copyProperties(request, purchaserInfo);
         purchaserInfo.setUserId(userId);
         purchaserInfo.setAuditStatus(AuditStatus.PENDING);
+        
+        // 设置上传后的URL
+        if (businessLicenseUrl != null) {
+            purchaserInfo.setBusinessLicenseUrl(businessLicenseUrl);
+        }
         
         save(purchaserInfo);
     }

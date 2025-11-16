@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import org.springframework.web.multipart.MultipartFile;
 import java.util.Map;
 
 /**
@@ -30,11 +31,9 @@ public class FarmerInfoRequest {
     @NotBlank(message = "身份证号不能为空")
     private String idNumber;
     
-    @NotBlank(message = "身份证正面照不能为空")
-    private String idCardFrontUrl;
+    private MultipartFile idCardFrontFile;
     
-    @NotBlank(message = "身份证反面照不能为空")
-    private String idCardBackUrl;
+    private MultipartFile idCardBackFile;
     
     private String applyReason;
 }

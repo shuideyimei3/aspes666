@@ -13,7 +13,7 @@ public interface PurchaseOrderService extends IService<PurchaseOrder> {
     /**
      * 基于合同创建订单
      */
-    void createOrderFromContract(Long contractId);
+    PurchaseOrder createOrderFromContract(Long contractId);
     
     /**
      * 订单验收

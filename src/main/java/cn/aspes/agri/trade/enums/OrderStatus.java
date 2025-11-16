@@ -12,6 +12,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum OrderStatus {
     PENDING("pending", "待交货"),
+    PENDING_INSPECTION("pending_inspection", "待验收"),
     DELIVERED("delivered", "已交货"),
     PAID("paid", "已支付"),
     COMPLETED("completed", "已完成"),

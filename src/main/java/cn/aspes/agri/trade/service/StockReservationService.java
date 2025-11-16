@@ -14,9 +14,19 @@ public interface StockReservationService extends IService<StockReservation> {
     Long reserveStock(Long orderId, Long productId, Integer quantity);
     
     /**
+     * 创建订单时预留库存
+     */
+    boolean reserveStock(Long productId, Integer quantity, Long orderId);
+    
+    /**
      * 订单取消时释放预留库存
      */
     void releaseReservation(Long orderId, String reason);
+    
+    /**
+     * 释放库存
+     */
+    void releaseStock(Long productId, Long orderId);
     
     /**
      * 支付成功后确认预留（不再自动释放）

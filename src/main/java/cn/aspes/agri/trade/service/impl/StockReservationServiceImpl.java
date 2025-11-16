@@ -67,6 +67,18 @@ public class StockReservationServiceImpl extends ServiceImpl<StockReservationMap
     
     @Override
     @Transactional(rollbackFor = Exception.class)
+    public boolean reserveStock(Long productId, Integer quantity, Long orderId) {
+        try {
+            reserveStock(orderId, productId, quantity);
+            return true;
+        } catch (BusinessException e) {
+            log.error("库存预留失败: {}", e.getMessage());
+            return false;
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
     public void releaseReservation(Long orderId, String reason) {
         StockReservation reservation = getByOrderId(orderId);
         if (reservation == null) {
@@ -85,6 +97,28 @@ public class StockReservationServiceImpl extends ServiceImpl<StockReservationMap
         updateById(reservation);
         
         log.info("库存预留释放成功：预留={}, 原因={}", reservation.getId(), reason);
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void releaseStock(Long productId, Long orderId) {
+        StockReservation reservation = getByOrderId(orderId);
+        if (reservation == null) {
+            log.warn("释放库存时，预留记录不存在：订单={}", orderId);
+            return;
+        }
+        
+        if ("released".equals(reservation.getStatus())) {
+            log.warn("预留已释放，请勿重复操作：预留={}", reservation.getId());
+            return;
+        }
+        
+        // 释放预留
+        reservation.setStatus("released");
+        reservation.setReleaseReason("订单取消");
+        updateById(reservation);
+        
+        log.info("库存预留释放成功：预留={}, 原因={}", reservation.getId(), "订单取消");
     }
     
     @Override

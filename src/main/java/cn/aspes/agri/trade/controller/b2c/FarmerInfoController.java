@@ -14,6 +14,7 @@ import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * C端 - 农户信息管理控制器
@@ -48,7 +49,13 @@ public class FarmerInfoController {
     @PostMapping
     @PreAuthorize("hasRole('FARMER')")
     public Result<Void> submitInfo(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                     @Valid @RequestBody FarmerInfoRequest request) {
+                                     @RequestPart(value = "idCardFrontFile", required = true) MultipartFile idCardFrontFile,
+                                     @RequestPart(value = "idCardBackFile", required = true) MultipartFile idCardBackFile,
+                                     @Valid @ModelAttribute FarmerInfoRequest request) {
+        // 设置上传的文件
+        request.setIdCardFrontFile(idCardFrontFile);
+        request.setIdCardBackFile(idCardBackFile);
+        
         farmerInfoService.submitFarmerInfo(userDetails.getId(), request);
         return Result.success();
     }

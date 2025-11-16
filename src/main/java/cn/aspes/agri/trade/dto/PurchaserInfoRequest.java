@@ -1,8 +1,10 @@
 package cn.aspes.agri.trade.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 /**
@@ -16,8 +18,7 @@ public class PurchaserInfoRequest {
     
     private String companyType;
     
-    @NotBlank(message = "营业执照不能为空")
-    private String businessLicense;
+    private MultipartFile businessLicenseFile;
     
     private String purchaseScale;
     

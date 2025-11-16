@@ -37,10 +37,10 @@ public class PurchaseOrderController {
     @Operation(summary = "基于合同创建订单")
     @PostMapping("/{contractId}")
     @PreAuthorize("hasRole('PURCHASER')")
-    public Result<Void> createOrderFromContract(@PathVariable Long contractId,
+    public Result<PurchaseOrder> createOrderFromContract(@PathVariable Long contractId,
                                                  @AuthenticationPrincipal CustomUserDetails userDetails) {
-        orderService.createOrderFromContract(contractId);
-        return Result.success();
+        PurchaseOrder order = orderService.createOrderFromContract(contractId);
+        return Result.success(order);
     }
     
     @Operation(summary = "查询我的订单")

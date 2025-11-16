@@ -15,6 +15,7 @@ import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * B端 - 采购合同管理控制器
@@ -31,9 +32,12 @@ public class PurchaseContractController {
     private EntityVOConverter entityVOConverter;
     
     @Operation(summary = "创建合同")
-    @PostMapping(consumes = {"application/json"})
+    @PostMapping(consumes = {"multipart/form-data"})
     public Result<Long> createContract(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                        @Valid @RequestBody ContractRequest request) {
+                                       @RequestPart(value = "signFile", required = false) MultipartFile signFile,
+                                       @Valid @ModelAttribute ContractRequest request) {
+        // 将文件设置到请求对象中
+        request.setSignFile(signFile);
         Long contractId = purchaseContractService.createContract(userDetails.getId(), request);
         return Result.success(contractId);
     }
@@ -42,7 +46,10 @@ public class PurchaseContractController {
     @PutMapping(value = "/{contractId}/sign", consumes = {"multipart/form-data"})
     public Result<Void> signContract(@PathVariable Long contractId,
                                       @AuthenticationPrincipal CustomUserDetails userDetails,
-                                      @ModelAttribute ContractRequest request) {
+                                      @RequestPart(value = "signFile", required = true) MultipartFile signFile,
+                                      @Valid @ModelAttribute ContractRequest request) {
+        // 将文件设置到请求对象中
+        request.setSignFile(signFile);
         String role = userDetails.getRole() == UserRole.FARMER ? "farmer" : "purchaser";
         purchaseContractService.signContract(contractId, userDetails.getId(), request, role);
         return Result.success();
