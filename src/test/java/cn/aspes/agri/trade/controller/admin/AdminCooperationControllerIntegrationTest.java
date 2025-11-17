@@ -48,9 +48,9 @@ class AdminCooperationControllerIntegrationTest {
         mockReview = new CooperationReview();
         mockReview.setId(1L);
         mockReview.setTargetId(1L);
-        mockReview.setReviewerId(2L);
+        mockReview.setReviewFrom("FARMER_2");
         mockReview.setRating(5);
-        mockReview.setContent("非常好的合作体验");
+        mockReview.setComment("非常好的合作体验");
         
         List<CooperationReview> reviewList = new ArrayList<>();
         reviewList.add(mockReview);
@@ -107,7 +107,7 @@ class AdminCooperationControllerIntegrationTest {
     @WithMockUser(roles = {"ADMIN"})
     @DisplayName("删除评价 - 成功")
     void deleteReview_Success() throws Exception {
-        doNothing().when(reviewService).deleteReview(1L);
+        doNothing().when(reviewService).deleteReview(1L, -1L);
 
         mockMvc.perform(delete("/api/admin/reviews/1"))
                 .andExpect(status().isOk())

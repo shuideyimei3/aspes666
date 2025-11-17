@@ -54,15 +54,15 @@ public class CooperationReviewServiceImpl extends ServiceImpl<CooperationReviewM
         if (farmer != null && farmer.getId().equals(order.getFarmerId())) {
             isOrderParticipant = true;
             // 设置评价来源为农户
-            review.setReviewFrom(currentUserId);
-            review.setReviewTo(order.getPurchaserId());
-            review.setTargetType("PURCHASER");
+            review.setReviewFrom("FARMER_" + currentUserId);
+            review.setReviewTo("PURCHASER_" + order.getPurchaserId());
+            review.setTargetId(order.getPurchaserId());
         } else if (purchaser != null && purchaser.getId().equals(order.getPurchaserId())) {
             isOrderParticipant = true;
             // 设置评价来源为采购方
-            review.setReviewFrom(currentUserId);
-            review.setReviewTo(order.getFarmerId());
-            review.setTargetType("FARMER");
+            review.setReviewFrom("PURCHASER_" + currentUserId);
+            review.setReviewTo("FARMER_" + order.getFarmerId());
+            review.setTargetId(order.getFarmerId());
         }
         
         if (!isOrderParticipant) {
@@ -97,10 +97,13 @@ public class CooperationReviewServiceImpl extends ServiceImpl<CooperationReviewM
         Page<CooperationReview> page = new Page<>(current, size);
         LambdaQueryWrapper<CooperationReview> wrapper = new LambdaQueryWrapper<>();
         
-        // ✅ 修复：根据角色获取信息ID，然后查询用户发表的评价
-        // 需要在Controller层传入角色信息，或从SecurityContext获取
-        // 这里简化处理：查询userId发表的所有评价
-        wrapper.eq(CooperationReview::getReviewFrom, userId);
+        // 查询userId发表的所有评价，可能是农户或采购方
+        String farmerReviewFrom = "FARMER_" + userId;
+        String purchaserReviewFrom = "PURCHASER_" + userId;
+        
+        wrapper.and(w -> w.eq(CooperationReview::getReviewFrom, farmerReviewFrom)
+                         .or()
+                         .eq(CooperationReview::getReviewFrom, purchaserReviewFrom));
         
         wrapper.orderByDesc(CooperationReview::getCreateTime);
         return page(page, wrapper);
@@ -110,6 +113,8 @@ public class CooperationReviewServiceImpl extends ServiceImpl<CooperationReviewM
     public Page<CooperationReview> listReceivedReviews(Long targetId, Integer current, Integer size) {
         Page<CooperationReview> page = new Page<>(current, size);
         LambdaQueryWrapper<CooperationReview> wrapper = new LambdaQueryWrapper<>();
+        
+        // 查询针对targetId的所有评价
         wrapper.eq(CooperationReview::getTargetId, targetId);
         wrapper.orderByDesc(CooperationReview::getCreateTime);
         
@@ -124,7 +129,11 @@ public class CooperationReviewServiceImpl extends ServiceImpl<CooperationReviewM
         }
         
         // 验证当前用户是否是评价的创建者
-        if (!review.getReviewFrom().equals(currentUserId)) {
+        // reviewFrom可能是"FARMER_" + userId或"PURCHASER_" + userId
+        String farmerReviewFrom = "FARMER_" + currentUserId;
+        String purchaserReviewFrom = "PURCHASER_" + currentUserId;
+        
+        if (!review.getReviewFrom().equals(farmerReviewFrom) && !review.getReviewFrom().equals(purchaserReviewFrom)) {
             throw new BusinessException("无权限修改此评价");
         }
         
@@ -141,7 +150,11 @@ public class CooperationReviewServiceImpl extends ServiceImpl<CooperationReviewM
         }
         
         // 验证当前用户是否是评价的创建者
-        if (!review.getReviewFrom().equals(currentUserId)) {
+        // reviewFrom可能是"FARMER_" + userId或"PURCHASER_" + userId
+        String farmerReviewFrom = "FARMER_" + currentUserId;
+        String purchaserReviewFrom = "PURCHASER_" + currentUserId;
+        
+        if (!review.getReviewFrom().equals(farmerReviewFrom) && !review.getReviewFrom().equals(purchaserReviewFrom)) {
             throw new BusinessException("无权限删除此评价");
         }
         

@@ -77,7 +77,7 @@ public class PurchaseOrderControllerIntegrationTest {
         when(orderService.pageOrders(anyInt(), anyInt(), anyString())).thenReturn(mockPage);
         when(orderService.listMyOrders(anyLong(), anyString(), anyInt(), anyInt())).thenReturn(mockPage);
         when(orderService.createOrderFromContract(anyLong())).thenReturn(mockOrder);
-        when(orderService.getOrderDetail(anyLong())).thenReturn(mockOrder);
+        when(orderService.getOrderDetail(anyLong(), anyLong(), anyString())).thenReturn(mockOrder);
         doNothing().when(orderService).deliverOrder(anyLong(), anyDouble(), anyString());
         doNothing().when(orderService).completeOrder(anyLong());
 

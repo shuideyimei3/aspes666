@@ -81,7 +81,7 @@ public class PurchaseOrderController {
             @Valid @RequestBody OrderDeliveryRequest request) {
         // 验证当前用户是否有权限操作该订单
         Long farmerId = farmerInfoService.getByUserId(userDetails.getId()).getId();
-        PurchaseOrder order = orderService.getOrderDetail(id);
+        PurchaseOrder order = orderService.getOrderDetail(id, userDetails.getId(), "farmer");
         if (order == null || !order.getFarmerId().equals(farmerId)) {
             throw new RuntimeException("无权限操作此订单");
         }
@@ -98,7 +98,7 @@ public class PurchaseOrderController {
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         // 验证当前用户是否有权限操作该订单
         Long purchaserId = purchaserInfoService.getByUserId(userDetails.getId()).getId();
-        PurchaseOrder order = orderService.getOrderDetail(id);
+        PurchaseOrder order = orderService.getOrderDetail(id, userDetails.getId(), "purchaser");
         if (order == null || !order.getPurchaserId().equals(purchaserId)) {
             throw new RuntimeException("无权限操作此订单");
         }

@@ -48,7 +48,7 @@ public class CooperationReviewControllerIntegrationTest {
         when(reviewService.lambdaQuery()).thenReturn(new CooperationReviewService().lambdaQuery());
 
         // 模拟提交评价
-        doNothing().when(reviewService).submitReview(any(CooperationReview.class));
+        doNothing().when(reviewService).submitReview(any(CooperationReview.class), anyLong());
 
         // 模拟查询我的评价
         when(reviewService.listMyReviews(anyLong(), anyInt(), anyInt())).thenReturn(reviewPage);
@@ -57,10 +57,10 @@ public class CooperationReviewControllerIntegrationTest {
         when(reviewService.listReceivedReviews(anyLong(), anyInt(), anyInt())).thenReturn(reviewPage);
 
         // 模拟修改评价
-        doNothing().when(reviewService).updateReview(anyLong(), anyInt(), anyString());
+        doNothing().when(reviewService).updateReview(anyLong(), anyInt(), anyString(), anyLong());
 
         // 模拟删除评价
-        doNothing().when(reviewService).deleteReview(anyLong());
+        doNothing().when(reviewService).deleteReview(anyLong(), anyLong());
     }
 
     @Test
@@ -98,7 +98,6 @@ public class CooperationReviewControllerIntegrationTest {
     void testSubmitReviewFarmerSuccess() throws Exception {
         CooperationReview review = new CooperationReview();
         review.setTargetId(2L);
-        review.setTargetType("PURCHASER");
         review.setOrderId(1L);
         review.setRating(5);
         review.setComment("非常好的采购方，合作愉快！");
@@ -116,7 +115,6 @@ public class CooperationReviewControllerIntegrationTest {
     void testSubmitReviewPurchaserSuccess() throws Exception {
         CooperationReview review = new CooperationReview();
         review.setTargetId(1L);
-        review.setTargetType("FARMER");
         review.setOrderId(1L);
         review.setRating(4);
         review.setComment("农户产品质量不错，但交货时间稍有延迟");
@@ -133,7 +131,6 @@ public class CooperationReviewControllerIntegrationTest {
     void testSubmitReviewNoPermission() throws Exception {
         CooperationReview review = new CooperationReview();
         review.setTargetId(2L);
-        review.setTargetType("PURCHASER");
         review.setOrderId(1L);
         review.setRating(5);
         review.setComment("非常好的采购方，合作愉快！");

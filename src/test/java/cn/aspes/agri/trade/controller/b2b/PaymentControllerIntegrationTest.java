@@ -42,7 +42,7 @@ public class PaymentControllerIntegrationTest {
     @BeforeEach
     void setUp() {
         // 模拟提交支付返回值
-        when(paymentRecordService.submitPayment(any(PaymentRequest.class)))
+        when(paymentRecordService.submitPayment(any(PaymentRequest.class), anyLong()))
                 .thenReturn(1L);
 
         // 模拟分页查询支付记录

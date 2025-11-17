@@ -42,7 +42,9 @@ public class AdminCooperationController {
     @Operation(summary = "删除评价")
     @DeleteMapping("/{reviewId}")
     public Result<Void> deleteReview(@PathVariable Long reviewId) {
-        reviewService.deleteReview(reviewId);
+        // 管理员删除评价，使用管理员ID作为currentUserId
+        // 由于管理员没有特定的用户ID，使用一个特殊值表示管理员操作
+        reviewService.deleteReview(reviewId, -1L);
         return Result.success();
     }
 }
