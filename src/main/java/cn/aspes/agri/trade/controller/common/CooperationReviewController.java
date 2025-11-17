@@ -44,8 +44,9 @@ public class CooperationReviewController {
     @Operation(summary = "提交评价")
     @PostMapping
     @PreAuthorize("hasAnyRole('FARMER', 'PURCHASER')")
-    public Result<Void> submit(@Valid @RequestBody CooperationReview review) {
-        reviewService.submitReview(review);
+    public Result<Void> submit(@Valid @RequestBody CooperationReview review,
+                              @AuthenticationPrincipal CustomUserDetails userDetails) {
+        reviewService.submitReview(review, userDetails.getId());
         return Result.success();
     }
     
@@ -70,18 +71,22 @@ public class CooperationReviewController {
     
     @Operation(summary = "修改评价")
     @PutMapping("/{reviewId}")
+    @PreAuthorize("hasAnyRole('FARMER', 'PURCHASER')")
     public Result<Void> updateReview(
             @PathVariable Long reviewId,
             @RequestParam(required = true) Integer rating,
-            @RequestParam(required = false) String comment) {
-        reviewService.updateReview(reviewId, rating, comment);
+            @RequestParam(required = false) String comment,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        reviewService.updateReview(reviewId, rating, comment, userDetails.getId());
         return Result.success();
     }
     
     @Operation(summary = "删除评价")
     @DeleteMapping("/{reviewId}")
-    public Result<Void> deleteReview(@PathVariable Long reviewId) {
-        reviewService.deleteReview(reviewId);
+    @PreAuthorize("hasAnyRole('FARMER', 'PURCHASER')")
+    public Result<Void> deleteReview(@PathVariable Long reviewId,
+                                   @AuthenticationPrincipal CustomUserDetails userDetails) {
+        reviewService.deleteReview(reviewId, userDetails.getId());
         return Result.success();
     }
 }

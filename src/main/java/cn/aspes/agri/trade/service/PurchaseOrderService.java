@@ -43,5 +43,5 @@ public interface PurchaseOrderService extends IService<PurchaseOrder> {
     /**
      * 订单详情
      */
-    PurchaseOrder getOrderDetail(Long orderId);
+    PurchaseOrder getOrderDetail(Long orderId, Long currentUserId, String role);
 }

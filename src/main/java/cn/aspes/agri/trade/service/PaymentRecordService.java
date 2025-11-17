@@ -16,7 +16,7 @@ public interface PaymentRecordService extends IService<PaymentRecord> {
     /**
      * 提交支付
      */
-    Long submitPayment(PaymentRequest request);
+    Long submitPayment(PaymentRequest request, Long currentUserId);
     
     /**
      * 确认支付成功

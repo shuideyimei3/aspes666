@@ -303,8 +303,30 @@ public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, P
     }
     
     @Override
-    public PurchaseOrder getOrderDetail(Long orderId) {
-        return getById(orderId);
+    public PurchaseOrder getOrderDetail(Long orderId, Long currentUserId, String role) {
+        PurchaseOrder order = getById(orderId);
+        if (order == null) {
+            throw new BusinessException("订单不存在");
+        }
+        
+        // 验证当前用户是否有权限查看订单详情
+        if ("farmer".equalsIgnoreCase(role)) {
+            // 农户查询：验证是否是订单的农户
+            FarmerInfo farmer = farmerInfoService.getByUserId(currentUserId);
+            if (farmer == null || !farmer.getId().equals(order.getFarmerId())) {
+                throw new BusinessException("无权限查看此订单详情");
+            }
+        } else if ("purchaser".equalsIgnoreCase(role)) {
+            // 采购方查询：验证是否是订单的采购方
+            PurchaserInfo purchaser = purchaserInfoService.getByUserId(currentUserId);
+            if (purchaser == null || !purchaser.getId().equals(order.getPurchaserId())) {
+                throw new BusinessException("无权限查看此订单详情");
+            }
+        } else {
+            throw new BusinessException("无权限查看此订单详情");
+        }
+        
+        return order;
     }
     
     /**

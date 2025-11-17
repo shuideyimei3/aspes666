@@ -34,7 +34,7 @@ public class CooperationReviewServiceImpl extends ServiceImpl<CooperationReviewM
     
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void submitReview(CooperationReview review) {
+    public void submitReview(CooperationReview review, Long currentUserId) {
         // ✅ 修复：使用Mapper直接查询，避免循环依赖
         // 验证订单状态
         PurchaseOrder order = purchaseOrderMapper.selectById(review.getOrderId());
@@ -44,6 +44,29 @@ public class CooperationReviewServiceImpl extends ServiceImpl<CooperationReviewM
         
         if (order.getStatus() != OrderStatus.COMPLETED) {
             throw new BusinessException("只有已完成的订单才能评价");
+        }
+        
+        // 验证评价者是否是订单的参与者
+        FarmerInfo farmer = farmerInfoService.getByUserId(currentUserId);
+        PurchaserInfo purchaser = purchaserInfoService.getByUserId(currentUserId);
+        
+        boolean isOrderParticipant = false;
+        if (farmer != null && farmer.getId().equals(order.getFarmerId())) {
+            isOrderParticipant = true;
+            // 设置评价来源为农户
+            review.setReviewFrom(currentUserId);
+            review.setReviewTo(order.getPurchaserId());
+            review.setTargetType("PURCHASER");
+        } else if (purchaser != null && purchaser.getId().equals(order.getPurchaserId())) {
+            isOrderParticipant = true;
+            // 设置评价来源为采购方
+            review.setReviewFrom(currentUserId);
+            review.setReviewTo(order.getFarmerId());
+            review.setTargetType("FARMER");
+        }
+        
+        if (!isOrderParticipant) {
+            throw new BusinessException("只有订单参与者才能评价");
         }
         
         // 检查是否已评价
@@ -94,10 +117,15 @@ public class CooperationReviewServiceImpl extends ServiceImpl<CooperationReviewM
     }
     
     @Override
-    public void updateReview(Long reviewId, Integer rating, String comment) {
+    public void updateReview(Long reviewId, Integer rating, String comment, Long currentUserId) {
         CooperationReview review = getById(reviewId);
         if (review == null) {
             throw new BusinessException("评价不存在");
+        }
+        
+        // 验证当前用户是否是评价的创建者
+        if (!review.getReviewFrom().equals(currentUserId)) {
+            throw new BusinessException("无权限修改此评价");
         }
         
         review.setRating(rating);
@@ -106,7 +134,17 @@ public class CooperationReviewServiceImpl extends ServiceImpl<CooperationReviewM
     }
     
     @Override
-    public void deleteReview(Long reviewId) {
+    public void deleteReview(Long reviewId, Long currentUserId) {
+        CooperationReview review = getById(reviewId);
+        if (review == null) {
+            throw new BusinessException("评价不存在");
+        }
+        
+        // 验证当前用户是否是评价的创建者
+        if (!review.getReviewFrom().equals(currentUserId)) {
+            throw new BusinessException("无权限删除此评价");
+        }
+        
         removeById(reviewId);
     }
 }

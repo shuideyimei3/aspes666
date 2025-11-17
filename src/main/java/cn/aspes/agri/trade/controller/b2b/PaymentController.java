@@ -34,8 +34,11 @@ public class PaymentController {
     
     @Operation(summary = "提交支付")
     @PostMapping(consumes = {"multipart/form-data"})
-    public Result<Long> submitPayment(@ModelAttribute PaymentRequest request) {
-        Long paymentId = paymentRecordService.submitPayment(request);
+    @PreAuthorize("hasRole('PURCHASER')")
+    public Result<Long> submitPayment(
+            @ModelAttribute PaymentRequest request,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long paymentId = paymentRecordService.submitPayment(request, userDetails.getId());
         return Result.success(paymentId);
     }
     

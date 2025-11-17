@@ -12,7 +12,7 @@ public interface CooperationReviewService extends IService<CooperationReview> {
     /**
      * 提交评价
      */
-    void submitReview(CooperationReview review);
+    void submitReview(CooperationReview review, Long currentUserId);
     
     /**
      * 查询我的评价
@@ -27,10 +27,10 @@ public interface CooperationReviewService extends IService<CooperationReview> {
     /**
      * 修改评价
      */
-    void updateReview(Long reviewId, Integer rating, String comment);
+    void updateReview(Long reviewId, Integer rating, String comment, Long currentUserId);
     
     /**
      * 删除评价
      */
-    void deleteReview(Long reviewId);
+    void deleteReview(Long reviewId, Long currentUserId);
 }

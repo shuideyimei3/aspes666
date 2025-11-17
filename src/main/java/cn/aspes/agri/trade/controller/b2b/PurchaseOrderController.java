@@ -64,8 +64,12 @@ public class PurchaseOrderController {
     
     @Operation(summary = "订单详情")
     @GetMapping("/{id}")
-    public Result<PurchaseOrder> getDetail(@PathVariable Long id) {
-        return Result.success(orderService.getOrderDetail(id));
+    @PreAuthorize("hasAnyRole('FARMER', 'PURCHASER')")
+    public Result<PurchaseOrder> getDetail(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        String role = userDetails.getRole().name().toLowerCase();
+        return Result.success(orderService.getOrderDetail(id, userDetails.getId(), role));
     }
     
     @Operation(summary = "农户交货")

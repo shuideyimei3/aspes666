@@ -64,7 +64,7 @@ public class PaymentRecordServiceImpl extends ServiceImpl<PaymentRecordMapper, P
     private FileUploadService fileUploadService;
     
     @Override
-    public Long submitPayment(PaymentRequest request) {
+    public Long submitPayment(PaymentRequest request, Long currentUserId) {
         // 先在事务外上传文件，避免文件上传异常污染数据库事务
         String voucherUrl = null;
         if (request.getVoucherFile() != null && !request.getVoucherFile().isEmpty()) {
@@ -78,7 +78,7 @@ public class PaymentRecordServiceImpl extends ServiceImpl<PaymentRecordMapper, P
         
         // 在事务中处理支付记录和订单更新
         try {
-            return submitPaymentInternal(request, voucherUrl);
+            return submitPaymentInternal(request, voucherUrl, currentUserId);
         } catch (Exception e) {
             // 事务回滚时，删除已上传的文件
             if (voucherUrl != null) {
@@ -98,7 +98,7 @@ public class PaymentRecordServiceImpl extends ServiceImpl<PaymentRecordMapper, P
      * 如果事务回滚，会自动删除已上传的文件
      */
     @Transactional(rollbackFor = Exception.class)
-    public Long submitPaymentInternal(PaymentRequest request, String voucherUrl) {
+    public Long submitPaymentInternal(PaymentRequest request, String voucherUrl, Long currentUserId) {
         // 如果提供了凭证URL，注册事务回滚时的文件删除回调
         if (voucherUrl != null && TransactionSynchronizationManager.isActualTransactionActive()) {
             registerFileDeleteOnRollback(voucherUrl);
@@ -109,6 +109,12 @@ public class PaymentRecordServiceImpl extends ServiceImpl<PaymentRecordMapper, P
         PurchaseOrder order = purchaseOrderService.getById(request.getOrderId());
         if (order == null) {
             throw new BusinessException("订单不存在");
+        }
+        
+        // 验证当前用户是否是订单的采购方
+        PurchaserInfo purchaser = purchaserInfoService.getByUserId(currentUserId);
+        if (purchaser == null || !purchaser.getId().equals(order.getPurchaserId())) {
+            throw new BusinessException("只有订单的采购方才能提交支付");
         }
         
         // 创建支付记录
