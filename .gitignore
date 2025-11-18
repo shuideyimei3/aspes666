@@ -4,3 +4,14 @@ target/
 /src/main/resources/application.yml
 .idea/
 
+# 敏感配置文件 - 不提交到版本控制系统
+/src/main/resources/application-prod.yml
+/src/main/resources/application-dev.yml
+
+# 日志文件
+*.log
+logs/
+
+# 临时文件
+*.tmp
+*.temp
