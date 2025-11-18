@@ -258,21 +258,23 @@ CREATE TABLE IF NOT EXISTS `payment_record` (
 
 -- 13. 物流记录表（批量采购物流）
 CREATE TABLE IF NOT EXISTS `logistics_record` (
-    `id` bigint NOT NULL COMMENT '物流ID（雪花算法）',
-    `order_id` bigint NOT NULL UNIQUE COMMENT '关联订单',
-    `logistics_company` VARCHAR(50) NOT NULL COMMENT '物流公司',
-    `tracking_no` VARCHAR(100) NOT NULL COMMENT '物流单号',
+                                                  `id` bigint NOT NULL COMMENT '物流ID（雪花算法）',
+                                                  `order_id` bigint NOT NULL COMMENT '关联订单（允许一个订单多条物流记录，如分批发货）',
+                                                  `logistics_company` VARCHAR(50) NOT NULL COMMENT '物流公司',
+    `tracking_no` VARCHAR(100) NOT NULL COMMENT '物流单号（同一物流公司内唯一）',
     `transport_type` VARCHAR(50) COMMENT '运输方式（如“冷链车”“普通货车”）',
     `departure_time` DATETIME DEFAULT NULL COMMENT '发货时间',
     `arrival_time` DATETIME DEFAULT NULL COMMENT '到货时间',
     `status` ENUM('pending','shipped','transit','arrived','signed') DEFAULT 'pending' COMMENT '物流状态',
+    `batch_no` VARCHAR(50) DEFAULT NULL COMMENT '批次号（区分同一订单的多批物流）',
     `create_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `update_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
+    KEY `idx_order_id` (`order_id`), -- 新增：加速查询订单的所有物流记录
     KEY `idx_tracking_no` (`tracking_no`),
+    UNIQUE KEY `uk_tracking_company` (`logistics_company`, `tracking_no`), -- 新增：确保同一物流公司的物流单号唯一
     CONSTRAINT `fk_logistics_order` FOREIGN KEY (`order_id`) REFERENCES `purchase_order` (`id`) ON DELETE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='物流记录表（批量采购）';
-
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='物流记录表（支持同一订单分批发货）';
 
 -- 14. 物流轨迹表
 CREATE TABLE IF NOT EXISTS `logistics_trace` (
