@@ -258,9 +258,9 @@ CREATE TABLE IF NOT EXISTS `payment_record` (
 
 -- 13. 物流记录表（批量采购物流）
 CREATE TABLE IF NOT EXISTS `logistics_record` (
-                                                  `id` bigint NOT NULL COMMENT '物流ID（雪花算法）',
-                                                  `order_id` bigint NOT NULL COMMENT '关联订单（允许一个订单多条物流记录，如分批发货）',
-                                                  `logistics_company` VARCHAR(50) NOT NULL COMMENT '物流公司',
+    `id` bigint NOT NULL COMMENT '物流ID（雪花算法）',
+    `order_id` bigint NOT NULL COMMENT '关联订单（允许一个订单多条物流记录，如分批发货）',
+    `logistics_company` VARCHAR(50) NOT NULL COMMENT '物流公司',
     `tracking_no` VARCHAR(100) NOT NULL COMMENT '物流单号（同一物流公司内唯一）',
     `transport_type` VARCHAR(50) COMMENT '运输方式（如“冷链车”“普通货车”）',
     `departure_time` DATETIME DEFAULT NULL COMMENT '发货时间',
