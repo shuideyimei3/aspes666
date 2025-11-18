@@ -48,7 +48,7 @@ class AdminCooperationControllerIntegrationTest {
         mockReview = new CooperationReview();
         mockReview.setId(1L);
         mockReview.setTargetId(1L);
-        mockReview.setReviewFrom("FARMER_2");
+        mockReview.setReviewFrom("farmer");
         mockReview.setRating(5);
         mockReview.setComment("非常好的合作体验");
         

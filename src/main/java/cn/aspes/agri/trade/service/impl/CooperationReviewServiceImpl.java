@@ -54,14 +54,14 @@ public class CooperationReviewServiceImpl extends ServiceImpl<CooperationReviewM
         if (farmer != null && farmer.getId().equals(order.getFarmerId())) {
             isOrderParticipant = true;
             // 设置评价来源为农户
-            review.setReviewFrom("FARMER_" + currentUserId);
-            review.setReviewTo("PURCHASER_" + order.getPurchaserId());
+            review.setReviewFrom("farmer");
+            review.setReviewTo("purchaser");
             review.setTargetId(order.getPurchaserId());
         } else if (purchaser != null && purchaser.getId().equals(order.getPurchaserId())) {
             isOrderParticipant = true;
             // 设置评价来源为采购方
-            review.setReviewFrom("PURCHASER_" + currentUserId);
-            review.setReviewTo("FARMER_" + order.getFarmerId());
+            review.setReviewFrom("purchaser");
+            review.setReviewTo("farmer");
             review.setTargetId(order.getFarmerId());
         }
         
@@ -98,12 +98,42 @@ public class CooperationReviewServiceImpl extends ServiceImpl<CooperationReviewM
         LambdaQueryWrapper<CooperationReview> wrapper = new LambdaQueryWrapper<>();
         
         // 查询userId发表的所有评价，可能是农户或采购方
-        String farmerReviewFrom = "FARMER_" + userId;
-        String purchaserReviewFrom = "PURCHASER_" + userId;
+        // 需要通过targetId反向查询，因为reviewFrom字段只存储角色信息
+        // 先获取用户的farmer_id和purchaser_id
+        FarmerInfo farmer = farmerInfoService.getByUserId(userId);
+        PurchaserInfo purchaser = purchaserInfoService.getByUserId(userId);
         
-        wrapper.and(w -> w.eq(CooperationReview::getReviewFrom, farmerReviewFrom)
-                         .or()
-                         .eq(CooperationReview::getReviewFrom, purchaserReviewFrom));
+        if (farmer != null && purchaser != null) {
+            // 用户既是农户又是采购方，需要查询两种角色
+            wrapper.and(w -> w.eq(CooperationReview::getReviewFrom, "farmer")
+                    .exists(
+                        "SELECT 1 FROM purchase_order po WHERE po.id = cooperation_review.order_id AND po.farmer_id = {0}", 
+                        farmer.getId()
+                    )
+                    .or()
+                    .eq(CooperationReview::getReviewFrom, "purchaser")
+                    .exists(
+                        "SELECT 1 FROM purchase_order po WHERE po.id = cooperation_review.order_id AND po.purchaser_id = {0}", 
+                        purchaser.getId()
+                    ));
+        } else if (farmer != null) {
+            // 用户只是农户
+            wrapper.eq(CooperationReview::getReviewFrom, "farmer")
+                    .exists(
+                        "SELECT 1 FROM purchase_order po WHERE po.id = cooperation_review.order_id AND po.farmer_id = {0}", 
+                        farmer.getId()
+                    );
+        } else if (purchaser != null) {
+            // 用户只是采购方
+            wrapper.eq(CooperationReview::getReviewFrom, "purchaser")
+                    .exists(
+                        "SELECT 1 FROM purchase_order po WHERE po.id = cooperation_review.order_id AND po.purchaser_id = {0}", 
+                        purchaser.getId()
+                    );
+        } else {
+            // 用户既不是农户也不是采购方，返回空结果
+            return page;
+        }
         
         wrapper.orderByDesc(CooperationReview::getCreateTime);
         return page(page, wrapper);
@@ -129,11 +159,23 @@ public class CooperationReviewServiceImpl extends ServiceImpl<CooperationReviewM
         }
         
         // 验证当前用户是否是评价的创建者
-        // reviewFrom可能是"FARMER_" + userId或"PURCHASER_" + userId
-        String farmerReviewFrom = "FARMER_" + currentUserId;
-        String purchaserReviewFrom = "PURCHASER_" + currentUserId;
+        // 需要通过订单表验证用户身份
+        PurchaseOrder order = purchaseOrderMapper.selectById(review.getOrderId());
+        if (order == null) {
+            throw new BusinessException("关联订单不存在");
+        }
         
-        if (!review.getReviewFrom().equals(farmerReviewFrom) && !review.getReviewFrom().equals(purchaserReviewFrom)) {
+        FarmerInfo farmer = farmerInfoService.getByUserId(currentUserId);
+        PurchaserInfo purchaser = purchaserInfoService.getByUserId(currentUserId);
+        
+        boolean hasPermission = false;
+        if ("farmer".equals(review.getReviewFrom()) && farmer != null && farmer.getId().equals(order.getFarmerId())) {
+            hasPermission = true;
+        } else if ("purchaser".equals(review.getReviewFrom()) && purchaser != null && purchaser.getId().equals(order.getPurchaserId())) {
+            hasPermission = true;
+        }
+        
+        if (!hasPermission) {
             throw new BusinessException("无权限修改此评价");
         }
         
@@ -150,11 +192,23 @@ public class CooperationReviewServiceImpl extends ServiceImpl<CooperationReviewM
         }
         
         // 验证当前用户是否是评价的创建者
-        // reviewFrom可能是"FARMER_" + userId或"PURCHASER_" + userId
-        String farmerReviewFrom = "FARMER_" + currentUserId;
-        String purchaserReviewFrom = "PURCHASER_" + currentUserId;
+        // 需要通过订单表验证用户身份
+        PurchaseOrder order = purchaseOrderMapper.selectById(review.getOrderId());
+        if (order == null) {
+            throw new BusinessException("关联订单不存在");
+        }
         
-        if (!review.getReviewFrom().equals(farmerReviewFrom) && !review.getReviewFrom().equals(purchaserReviewFrom)) {
+        FarmerInfo farmer = farmerInfoService.getByUserId(currentUserId);
+        PurchaserInfo purchaser = purchaserInfoService.getByUserId(currentUserId);
+        
+        boolean hasPermission = false;
+        if ("farmer".equals(review.getReviewFrom()) && farmer != null && farmer.getId().equals(order.getFarmerId())) {
+            hasPermission = true;
+        } else if ("purchaser".equals(review.getReviewFrom()) && purchaser != null && purchaser.getId().equals(order.getPurchaserId())) {
+            hasPermission = true;
+        }
+        
+        if (!hasPermission) {
             throw new BusinessException("无权限删除此评价");
         }
         
