@@ -1,7 +1,6 @@
 package cn.aspes.agri.trade.controller.b2b;
 
 import cn.aspes.agri.trade.common.Result;
-import cn.aspes.agri.trade.dto.OrderDeliveryRequest;
 import cn.aspes.agri.trade.entity.PurchaseOrder;
 import cn.aspes.agri.trade.security.CustomUserDetails;
 import cn.aspes.agri.trade.service.FarmerInfoService;
@@ -11,7 +10,6 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
-import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -42,9 +40,9 @@ public class PurchaseOrderController {
         return Result.success(orderService.pageOrders(current, size, status));
     }
     
-    @Operation(summary = "基于合同创建订单")
+    @Operation(summary = "基于合同创建订单（管理员权限）")
     @PostMapping("/{contractId}")
-    @PreAuthorize("hasRole('PURCHASER')")
+    @PreAuthorize("hasRole('ADMIN')")
     public Result<PurchaseOrder> createOrderFromContract(@PathVariable Long contractId,
                                                  @AuthenticationPrincipal CustomUserDetails userDetails) {
         PurchaseOrder order = orderService.createOrderFromContract(contractId);
@@ -70,24 +68,6 @@ public class PurchaseOrderController {
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         String role = userDetails.getRole().name().toLowerCase();
         return Result.success(orderService.getOrderDetail(id, userDetails.getId(), role));
-    }
-    
-    @Operation(summary = "农户交货")
-    @PostMapping("/{id}/deliver")
-    @PreAuthorize("hasRole('FARMER')")
-    public Result<Void> deliverOrder(
-            @PathVariable Long id,
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @Valid @RequestBody OrderDeliveryRequest request) {
-        // 验证当前用户是否有权限操作该订单
-        Long farmerId = farmerInfoService.getByUserId(userDetails.getId()).getId();
-        PurchaseOrder order = orderService.getOrderDetail(id, userDetails.getId(), "farmer");
-        if (order == null || !order.getFarmerId().equals(farmerId)) {
-            throw new RuntimeException("无权限操作此订单");
-        }
-        
-        orderService.deliverOrder(id, request.getActualQuantity(), request.getInspectionResult());
-        return Result.success();
     }
     
     @Operation(summary = "采购方确认订单")

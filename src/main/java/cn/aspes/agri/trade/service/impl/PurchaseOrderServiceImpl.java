@@ -352,8 +352,8 @@ public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, P
         }
         
         // 2. 验证订单状态
-        if (order.getStatus() != OrderStatus.PAID) {
-            throw new BusinessException("只有已支付的订单才能交货，当前订单状态：" + order.getStatus().getDesc());
+        if (order.getStatus() != OrderStatus.PAID && order.getStatus() != OrderStatus.DELIVERED) {
+            throw new BusinessException("只有已支付或已部分交货的订单才能交货，当前订单状态：" + order.getStatus().getDesc());
         }
         
         // 3. 查询合同
@@ -368,9 +368,17 @@ public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, P
         }
         
         // 5. 更新订单信息
-        order.setActualQuantity(actualQuantity);
-        order.setInspectionResult(inspectionResult);
-        order.setDeliveryTime(LocalDateTime.now());
+        // 如果是第一次交货，设置交货时间和检验结果
+        if (order.getActualQuantity() == null) {
+            order.setDeliveryTime(LocalDateTime.now());
+            order.setInspectionResult(inspectionResult);
+            order.setActualQuantity(actualQuantity);
+        } else {
+            // 如果不是第一次交货，累加交货数量
+            order.setActualQuantity(order.getActualQuantity() + actualQuantity);
+        }
+        
+        // 更新订单状态为已交货
         order.setStatus(OrderStatus.DELIVERED);
         updateById(order);
     }

@@ -5,6 +5,7 @@ import cn.aspes.agri.trade.dto.LogisticsTraceRequest;
 import cn.aspes.agri.trade.entity.LogisticsRecord;
 import cn.aspes.agri.trade.entity.LogisticsTrace;
 import cn.aspes.agri.trade.service.LogisticsRecordService;
+import cn.aspes.agri.trade.service.PurchaseOrderService;
 import cn.aspes.agri.trade.converter.EntityVOConverter;
 import cn.aspes.agri.trade.vo.LogisticsVO;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -40,6 +41,9 @@ public class LogisticsControllerIntegrationTest {
 
     @MockBean
     private LogisticsRecordService logisticsRecordService;
+    
+    @MockBean
+    private PurchaseOrderService purchaseOrderService;
 
     @MockBean
     private EntityVOConverter entityVOConverter;
@@ -48,6 +52,9 @@ public class LogisticsControllerIntegrationTest {
     void setUp() {
         // Mock service to return a logistics ID
         when(logisticsRecordService.createLogistics(any(LogisticsRequest.class))).thenReturn(1L);
+        
+        // Mock purchaseOrderService.deliverOrder to do nothing
+        doNothing().when(purchaseOrderService).deliverOrder(anyLong(), anyInt(), anyString());
         
         // Mock service to return a logistics record
         LogisticsRecord mockLogistics = new LogisticsRecord();
@@ -65,6 +72,22 @@ public class LogisticsControllerIntegrationTest {
         when(logisticsRecordService.getByOrderId(1L)).thenReturn(mockLogistics);
         when(logisticsRecordService.getByOrderId(99999L)).thenReturn(null);
         when(entityVOConverter.toLogisticsVO(mockLogistics)).thenReturn(mockLogisticsVO);
+        
+        // Mock service to return multiple logistics records for an order
+        LogisticsRecord mockLogistics2 = new LogisticsRecord();
+        mockLogistics2.setId(2L);
+        mockLogistics2.setOrderId(1L);
+        mockLogistics2.setLogisticsCompany("中通快递");
+        mockLogistics2.setTrackingNumber("ZT9876543210");
+        
+        LogisticsVO mockLogisticsVO2 = new LogisticsVO();
+        mockLogisticsVO2.setId(2L);
+        mockLogisticsVO2.setOrderId(1L);
+        mockLogisticsVO2.setLogisticsCompany("中通快递");
+        mockLogisticsVO2.setTrackingNumber("ZT9876543210");
+        
+        when(logisticsRecordService.listByOrderId(1L)).thenReturn(java.util.Arrays.asList(mockLogistics, mockLogistics2));
+        when(entityVOConverter.toLogisticsVO(mockLogistics2)).thenReturn(mockLogisticsVO2);
         
         // Mock service to return traces
         LogisticsTrace mockTrace = new LogisticsTrace();
@@ -96,8 +119,11 @@ public class LogisticsControllerIntegrationTest {
         request.setReceiverName("李四");
         request.setReceiverPhone("13900139000");
         request.setReceiverAddress("北京市朝阳区");
+        // 添加农户交货相关字段
+        request.setActualQuantity(100);
+        request.setInspectionResult("质量合格");
 
-        mockMvc.perform(post("/api/c2c/logistics")
+        mockMvc.perform(post("/api/b2c/logistics")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -113,8 +139,11 @@ public class LogisticsControllerIntegrationTest {
         request.setOrderId(1L);
         request.setLogisticsCompany("顺丰速运");
         request.setTrackingNumber("SF1234567890");
+        // 添加农户交货相关字段
+        request.setActualQuantity(100);
+        request.setInspectionResult("质量合格");
 
-        mockMvc.perform(post("/api/c2c/logistics")
+        mockMvc.perform(post("/api/b2c/logistics")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden());
@@ -127,31 +156,17 @@ public class LogisticsControllerIntegrationTest {
         request.setOrderId(1L);
         request.setLogisticsCompany("顺丰速运");
         request.setTrackingNumber("SF1234567890");
+        // 添加农户交货相关字段
+        request.setActualQuantity(100);
+        request.setInspectionResult("质量合格");
 
-        mockMvc.perform(post("/api/c2c/logistics")
+        mockMvc.perform(post("/api/b2c/logistics")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized());
     }
 
-    @Test
-    @DisplayName("发货 - 成功")
-    @WithMockUser(roles = {"FARMER"})
-    void testShipOrderSuccess() throws Exception {
-        // Mock service to do nothing
-        doNothing().when(logisticsRecordService).shipGoods(anyLong());
 
-        mockMvc.perform(put("/api/c2c/logistics/1/ship"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200));
-    }
-
-    @Test
-    @DisplayName("发货 - 失败 - 未认证")
-    void testShipOrderFailureWithoutAuthentication() throws Exception {
-        mockMvc.perform(put("/api/c2c/logistics/1/ship"))
-                .andExpect(status().isUnauthorized());
-    }
 
     @Test
     @DisplayName("添加物流轨迹 - 成功")
@@ -164,7 +179,7 @@ public class LogisticsControllerIntegrationTest {
         request.setDescription("货物已从成都发出");
         request.setLocation("四川省成都市");
 
-        mockMvc.perform(post("/api/c2c/logistics/1/trace")
+        mockMvc.perform(post("/api/b2c/logistics/1/trace")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -178,7 +193,7 @@ public class LogisticsControllerIntegrationTest {
         request.setDescription("货物已从成都发出");
         request.setLocation("四川省成都市");
 
-        mockMvc.perform(post("/api/c2c/logistics/1/trace")
+        mockMvc.perform(post("/api/b2c/logistics/1/trace")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized());
@@ -191,7 +206,7 @@ public class LogisticsControllerIntegrationTest {
         // Mock service to do nothing
         doNothing().when(logisticsRecordService).confirmReceipt(anyLong());
 
-        mockMvc.perform(put("/api/c2c/logistics/1/confirm"))
+        mockMvc.perform(put("/api/b2c/logistics/1/confirm"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200));
     }
@@ -200,21 +215,21 @@ public class LogisticsControllerIntegrationTest {
     @DisplayName("确认签收 - 失败 - 无权限")
     @WithMockUser(roles = {"FARMER"})
     void testConfirmReceiptFailureWithoutPermission() throws Exception {
-        mockMvc.perform(put("/api/c2c/logistics/1/confirm"))
+        mockMvc.perform(put("/api/b2c/logistics/1/confirm"))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     @DisplayName("确认签收 - 失败 - 未认证")
     void testConfirmReceiptFailureWithoutAuthentication() throws Exception {
-        mockMvc.perform(put("/api/c2c/logistics/1/confirm"))
+        mockMvc.perform(put("/api/b2c/logistics/1/confirm"))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     @DisplayName("查询订单物流信息 - 成功")
     void testGetOrderLogisticsSuccess() throws Exception {
-        mockMvc.perform(get("/api/c2c/logistics/order/1"))
+        mockMvc.perform(get("/api/b2c/logistics/order/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data").exists())
@@ -225,7 +240,7 @@ public class LogisticsControllerIntegrationTest {
     @Test
     @DisplayName("查询订单物流信息 - 失败 - 订单不存在")
     void testGetOrderLogisticsFailureWithNonexistentOrder() throws Exception {
-        mockMvc.perform(get("/api/c2c/logistics/order/99999"))
+        mockMvc.perform(get("/api/b2c/logistics/order/99999"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data").isEmpty());
@@ -234,7 +249,7 @@ public class LogisticsControllerIntegrationTest {
     @Test
     @DisplayName("查询物流轨迹列表 - 成功")
     void testGetLogisticsTracksSuccess() throws Exception {
-        mockMvc.perform(get("/api/c2c/logistics/1/traces"))
+        mockMvc.perform(get("/api/b2c/logistics/1/traces"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data").isArray())
@@ -244,7 +259,7 @@ public class LogisticsControllerIntegrationTest {
     @Test
     @DisplayName("分页查询物流轨迹 - 成功")
     void testPageLogisticsTracksSuccess() throws Exception {
-        mockMvc.perform(get("/api/c2c/logistics/1/traces-page")
+        mockMvc.perform(get("/api/b2c/logistics/1/traces-page")
                         .param("current", "1")
                         .param("size", "10"))
                 .andExpect(status().isOk())

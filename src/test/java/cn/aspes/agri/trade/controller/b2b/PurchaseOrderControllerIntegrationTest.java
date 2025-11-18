@@ -2,7 +2,6 @@ package cn.aspes.agri.trade.controller.b2b;
 
 import cn.aspes.agri.trade.dto.LoginRequest;
 import cn.aspes.agri.trade.dto.LoginResponse;
-import cn.aspes.agri.trade.dto.OrderDeliveryRequest;
 import cn.aspes.agri.trade.entity.PurchaseOrder;
 import cn.aspes.agri.trade.security.CustomUserDetails;
 import cn.aspes.agri.trade.service.FarmerInfoService;
@@ -178,34 +177,7 @@ public class PurchaseOrderControllerIntegrationTest {
                 .andExpect(jsonPath("$.message").exists());
     }
 
-    @Test
-    @DisplayName("农户交货 - 成功")
-    @WithMockUser(roles = {"FARMER"})
-    void testDeliverOrderSuccess() throws Exception {
-        OrderDeliveryRequest request = new OrderDeliveryRequest();
-        request.setActualQuantity(50);
-        request.setInspectionResult("质量合格，新鲜度高");
 
-        mockMvc.perform(post("/api/b2b/orders/1/deliver")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200));
-    }
-
-    @Test
-    @DisplayName("农户交货 - 失败 - 无权限")
-    @WithMockUser(roles = {"PURCHASER"})
-    void testDeliverOrderFailureWithoutPermission() throws Exception {
-        OrderDeliveryRequest request = new OrderDeliveryRequest();
-        request.setActualQuantity(50);
-        request.setInspectionResult("质量合格");
-
-        mockMvc.perform(post("/api/b2b/orders/1/deliver")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isForbidden());
-    }
 
     @Test
     @DisplayName("采购方确认订单 - 成功")
