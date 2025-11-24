@@ -3,6 +3,7 @@ package cn.aspes.agri.trade.filter;
 import cn.aspes.agri.trade.enums.UserRole;
 import cn.aspes.agri.trade.security.CustomUserDetails;
 import cn.aspes.agri.trade.util.JwtUtil;
+import cn.aspes.agri.trade.service.StatisticsService;
 import cn.hutool.core.util.StrUtil;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
@@ -26,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     
     private final JwtUtil jwtUtil;
+    private final StatisticsService statisticsService;
     
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) 
@@ -54,6 +56,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 
                 // 设置到安全上下文
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                // 记录农户请求活跃事件（市级）
+                if (role == UserRole.FARMER) {
+                    statisticsService.recordFarmerActivity(userId);
+                }
             } catch (Exception e) {
                 logger.error("JWT认证失败", e);
             }

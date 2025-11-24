@@ -31,4 +31,14 @@ public interface StatisticsService {
      * 获取农户销售统计
      */
     StatisticsVO.FarmerStats getFarmerStats(Long farmerId);
+    
+    /**
+     * 记录农户请求活跃事件（市级）
+     */
+    void recordFarmerActivity(Long userId);
+    
+    /**
+     * 获取最近N分钟各城市农户活跃度
+     */
+    java.util.Map<String, Long> getFarmerActivityByCity(int windowMinutes);
 }

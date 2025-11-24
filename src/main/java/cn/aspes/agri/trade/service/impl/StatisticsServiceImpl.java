@@ -36,8 +36,12 @@ public class StatisticsServiceImpl implements StatisticsService {
     private final PurchaseContractMapper purchaseContractMapper;
     private final FarmerInfoMapper farmerInfoMapper;
     private final PurchaserInfoMapper purchaserInfoMapper;
+    private final OriginAreaMapper originAreaMapper;
     private final FarmerInfoService farmerInfoService;
     private final PurchaserInfoService purchaserInfoService;
+    
+    // 市级农户活跃事件滑动窗口，按城市聚合（内存实现）
+    private final java.util.concurrent.ConcurrentHashMap<String, java.util.concurrent.ConcurrentLinkedQueue<Long>> cityEvents = new java.util.concurrent.ConcurrentHashMap<>();
     
     @Override
     public StatisticsVO.UserOrderStats getUserOrderStats(Long userId, String role) {
@@ -307,5 +311,46 @@ public class StatisticsServiceImpl implements StatisticsService {
         }
         
         return stats;
+    }
+    
+    // 记录农户请求活跃事件（市级）
+    @Override
+    public void recordFarmerActivity(Long userId) {
+        try {
+            FarmerInfo farmer = farmerInfoService.getByUserId(userId);
+            if (farmer == null || farmer.getOriginAreaId() == null) {
+                return;
+            }
+            OriginArea area = originAreaMapper.selectById(farmer.getOriginAreaId());
+            String city = (area != null && area.getCity() != null && !area.getCity().isEmpty()) ? area.getCity() : "未知";
+            java.util.concurrent.ConcurrentLinkedQueue<Long> queue = cityEvents.computeIfAbsent(city, k -> new java.util.concurrent.ConcurrentLinkedQueue<>());
+            long ts = System.currentTimeMillis();
+            queue.add(ts);
+        } catch (Exception e) {
+            log.warn("记录农户活跃事件失败 userId={}", userId, e);
+        }
+    }
+    
+    // 获取最近N分钟各城市农户活跃度
+    @Override
+    public java.util.Map<String, Long> getFarmerActivityByCity(int windowMinutes) {
+        long cutoff = System.currentTimeMillis() - windowMinutes * 60_000L;
+        java.util.Map<String, Long> result = new java.util.HashMap<>();
+        for (java.util.Map.Entry<String, java.util.concurrent.ConcurrentLinkedQueue<Long>> entry : cityEvents.entrySet()) {
+            String city = entry.getKey();
+            java.util.concurrent.ConcurrentLinkedQueue<Long> q = entry.getValue();
+            // 清理过期事件
+            while (!q.isEmpty() && q.peek() < cutoff) {
+                q.poll();
+            }
+            int size = q.size();
+            if (size > 0) {
+                result.put(city, (long) size);
+            } else {
+                // 队列为空则尝试移除该城市，避免内存增长
+                cityEvents.remove(city, q);
+            }
+        }
+        return result;
     }
 }

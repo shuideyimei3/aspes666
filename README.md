@@ -12,7 +12,7 @@
 - **ORM框架**: MyBatis Plus 3.5.5
 - **安全框架**: Spring Security + JWT
 - **API文档**: SpringDoc OpenAPI 3
-- **文件存储**: MinIO / 阿里云OSS
+- **文件存储**: 阿里云OSS
 - **工具库**: Hutool、ModelMapper、Lombok
 - **测试框架**: JUnit 5、RestAssured、H2 Database
 

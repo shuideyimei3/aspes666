@@ -18,11 +18,21 @@
         </processorPath>
         <module name="agri-trade-platform" />
       </profile>
+      <profile name="Annotation profile for trade-platform" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.30/lombok-1.18.30.jar" />
+        </processorPath>
+        <module name="trade-platform" />
+      </profile>
     </annotationProcessing>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="agri-trade-platform" options="-parameters" />
+      <module name="trade-platform" options="-parameters" />
     </option>
   </component>
 </project>
