@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * 通用搜索控制器
  */
-@Tag(name = "通用搜索")
+@Tag(name = "通用 - 搜索")
 @RestController
 @RequestMapping("/api/search")
 public class SearchController {
