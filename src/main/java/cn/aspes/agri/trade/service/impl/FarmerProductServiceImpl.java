@@ -242,4 +242,17 @@ public class FarmerProductServiceImpl extends ServiceImpl<FarmerProductMapper, F
     public FarmerProduct getProductById(Long productId) {
         return getById(productId);
     }
+    
+    @Override
+    public IPage<FarmerProduct> searchProductsByName(String keyword, int pageNum, int pageSize) {
+        Page<FarmerProduct> page = new Page<>(pageNum, pageSize);
+        LambdaQueryWrapper<FarmerProduct> wrapper = new LambdaQueryWrapper<>();
+        
+        if (keyword != null && !keyword.isEmpty()) {
+            wrapper.like(FarmerProduct::getName, keyword);
+        }
+        
+        wrapper.orderByDesc(FarmerProduct::getCreateTime);
+        return page(page, wrapper);
+    }
 }

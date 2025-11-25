@@ -191,6 +191,9 @@
                 <version>3.8.1</version>
                 <configuration>
                     <release>17</release>
+                    <compilerArgs>
+                        <arg>-parameters</arg>
+                    </compilerArgs>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>

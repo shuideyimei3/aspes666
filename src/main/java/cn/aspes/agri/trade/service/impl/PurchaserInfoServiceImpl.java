@@ -204,4 +204,17 @@ public class PurchaserInfoServiceImpl extends ServiceImpl<PurchaserInfoMapper, P
             }
         }
     }
+    
+    @Override
+    public Page<PurchaserInfo> searchPurchasersByName(String keyword, Integer current, Integer size) {
+        Page<PurchaserInfo> page = new Page<>(current, size);
+        LambdaQueryWrapper<PurchaserInfo> wrapper = new LambdaQueryWrapper<>();
+        
+        if (keyword != null && !keyword.isEmpty()) {
+            wrapper.like(PurchaserInfo::getCompanyName, keyword);
+        }
+        
+        wrapper.orderByDesc(PurchaserInfo::getCreateTime);
+        return page(page, wrapper);
+    }
 }

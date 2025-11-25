@@ -67,4 +67,9 @@ public interface FarmerProductService extends IService<FarmerProduct> {
      * @return 产品信息
      */
     FarmerProduct getProductById(Long productId);
+    
+    /**
+     * 根据商品名称关键字查询商品列表（分页）
+     */
+    IPage<FarmerProduct> searchProductsByName(String keyword, int pageNum, int pageSize);
 }

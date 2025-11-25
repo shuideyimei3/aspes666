@@ -232,4 +232,17 @@ public class FarmerInfoServiceImpl extends ServiceImpl<FarmerInfoMapper, FarmerI
             }
         }
     }
+    
+    @Override
+    public Page<FarmerInfo> searchFarmersByName(String keyword, Integer current, Integer size) {
+        Page<FarmerInfo> page = new Page<>(current, size);
+        LambdaQueryWrapper<FarmerInfo> wrapper = new LambdaQueryWrapper<>();
+        
+        if (keyword != null && !keyword.isEmpty()) {
+            wrapper.like(FarmerInfo::getFarmName, keyword);
+        }
+        
+        wrapper.orderByDesc(FarmerInfo::getCreateTime);
+        return page(page, wrapper);
+    }
 }

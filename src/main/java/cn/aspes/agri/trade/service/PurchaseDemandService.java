@@ -39,4 +39,9 @@ public interface PurchaseDemandService extends IService<PurchaseDemand> {
      * 查询我的需求列表
      */
     IPage<PurchaseDemand> listMyDemands(Long purchaserId, int pageNum, int pageSize);
+    
+    /**
+     * 根据需求产品名称关键字查询需求列表（分页）
+     */
+    IPage<PurchaseDemand> searchDemandsByProductName(String keyword, int pageNum, int pageSize);
 }

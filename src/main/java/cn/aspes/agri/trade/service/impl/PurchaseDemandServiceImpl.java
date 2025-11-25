@@ -130,4 +130,17 @@ public class PurchaseDemandServiceImpl extends ServiceImpl<PurchaseDemandMapper,
         
         return page(page, wrapper);
     }
+    
+    @Override
+    public IPage<PurchaseDemand> searchDemandsByProductName(String keyword, int pageNum, int pageSize) {
+        Page<PurchaseDemand> page = new Page<>(pageNum, pageSize);
+        LambdaQueryWrapper<PurchaseDemand> wrapper = new LambdaQueryWrapper<>();
+        
+        if (keyword != null && !keyword.isEmpty()) {
+            wrapper.like(PurchaseDemand::getProductName, keyword);
+        }
+        
+        wrapper.orderByDesc(PurchaseDemand::getCreateTime);
+        return page(page, wrapper);
+    }
 }

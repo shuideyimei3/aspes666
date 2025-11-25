@@ -34,4 +34,9 @@ public interface FarmerInfoService extends IService<FarmerInfo> {
      * 修改农户信息
      */
     void updateFarmerInfo(Long farmerId, Long userId, FarmerInfoRequest request);
+    
+    /**
+     * 根据农户名称关键字查询农户列表（分页）
+     */
+    Page<FarmerInfo> searchFarmersByName(String keyword, Integer current, Integer size);
 }

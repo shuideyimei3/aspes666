@@ -4,10 +4,13 @@ import cn.aspes.agri.trade.dto.ProductImageDTO;
 import cn.aspes.agri.trade.entity.*;
 import cn.aspes.agri.trade.service.ProductImageService;
 import cn.aspes.agri.trade.vo.*;
+import cn.aspes.agri.trade.service.OriginAreaService;
+
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -23,7 +26,8 @@ public class EntityVOConverter {
     
     private final ModelMapper modelMapper;
     private final ProductImageService productImageService;
-    
+    private final OriginAreaService originAreaService;
+
     // ============== User转换 ==============
     
     public UserVO toUserVO(User user) {
@@ -48,6 +52,85 @@ public class EntityVOConverter {
         }
         IPage<UserVO> result = new Page<>(page.getCurrent(), page.getSize(), page.getTotal());
         result.setRecords(toUserVOList(page.getRecords()));
+        return result;
+    }
+    
+    // ============== FarmerInfo转换 ==============
+    
+    public FarmerInfoVO toFarmerInfoVO(FarmerInfo farmerInfo) {
+        if (farmerInfo == null) {
+            return null;
+        }
+
+        FarmerInfoVO farmerInfoVO = new FarmerInfoVO();
+        BeanUtils.copyProperties(farmerInfo, farmerInfoVO);
+        
+        // 查询并设置产地名称
+        if (farmerInfo.getOriginAreaId() != null) {
+            OriginArea originArea = originAreaService.getById(farmerInfo.getOriginAreaId());
+            if (originArea != null) {
+                farmerInfoVO.setOriginAreaName(originArea.getAreaName());
+            }
+        }
+
+        return farmerInfoVO;
+    }
+    
+    public List<FarmerInfoVO> toFarmerInfoVOList(List<FarmerInfo> farmerInfos) {
+        if (farmerInfos == null || farmerInfos.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return farmerInfos.stream()
+                .map(this::toFarmerInfoVO)
+                .collect(Collectors.toList());
+    }
+    
+    public IPage<FarmerInfoVO> toFarmerInfoVOPage(IPage<FarmerInfo> page) {
+        if (page == null) {
+            return null;
+        }
+        IPage<FarmerInfoVO> result = new Page<>(page.getCurrent(), page.getSize(), page.getTotal());
+        result.setRecords(toFarmerInfoVOList(page.getRecords()));
+        return result;
+    }
+    
+    // ============== PurchaserInfo转换 ==============
+    
+    public PurchaserInfoVO toPurchaserInfoVO(PurchaserInfo purchaserInfo) {
+        if (purchaserInfo == null) {
+            return null;
+        }
+        
+        PurchaserInfoVO vo = new PurchaserInfoVO();
+        BeanUtils.copyProperties(purchaserInfo, vo);
+        
+        // 字段映射转换
+        vo.setBusinessLicense(purchaserInfo.getBusinessLicenseUrl());
+        vo.setLegalPerson(purchaserInfo.getLegalRepresentative());
+        
+        // 认证状态转换
+        if (purchaserInfo.getAuditStatus() != null) {
+            vo.setAuthStatus(purchaserInfo.getAuditStatus().ordinal());
+        }
+        
+        return vo;
+    }
+    
+    public List<PurchaserInfoVO> toPurchaserInfoVOList(List<PurchaserInfo> purchaserInfos) {
+        if (purchaserInfos == null || purchaserInfos.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return purchaserInfos.stream()
+                .map(this::toPurchaserInfoVO)
+                .collect(Collectors.toList());
+    }
+    
+    public IPage<PurchaserInfoVO> toPurchaserInfoVOPage(IPage<PurchaserInfo> page) {
+        if (page == null) {
+            return null;
+        }
+        IPage<PurchaserInfoVO> result = new Page<>(page.getCurrent(), page.getSize(), page.getTotal());
+        result.setRecords(toPurchaserInfoVOList(page.getRecords()));
         return result;
     }
     

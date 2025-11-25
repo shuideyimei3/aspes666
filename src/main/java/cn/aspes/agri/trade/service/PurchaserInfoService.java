@@ -40,4 +40,9 @@ public interface PurchaserInfoService extends IService<PurchaserInfo> {
      * 修改采购方信息
      */
     void updatePurchaserInfo(Long purchaserId, Long userId, PurchaserInfoRequest request);
+    
+    /**
+     * 根据采购商名称关键字查询采购商列表（分页）
+     */
+    Page<PurchaserInfo> searchPurchasersByName(String keyword, Integer current, Integer size);
 }
