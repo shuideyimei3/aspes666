@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="com.codeverse.userSettings.MarscodeWorkspaceAppSettingsState">
+<<<<<<< HEAD
     <option name="chatAppRouterInfo" value="builder/69245f63346b42f3958a3229" />
+=======
+    <option name="chatAppRouterInfo" value="builder/6925585351dcefaa9c9c1a6e" />
+>>>>>>> 41c7896 (Add image compression functionality)
     <option name="progress" value="1.0" />
   </component>
 </project>

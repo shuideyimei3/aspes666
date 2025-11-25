@@ -7,6 +7,7 @@ import cn.aspes.agri.trade.entity.PurchaseContract;
 import cn.aspes.agri.trade.enums.UserRole;
 import cn.aspes.agri.trade.security.CustomUserDetails;
 import cn.aspes.agri.trade.service.PurchaseContractService;
+import cn.aspes.agri.trade.util.ImageProcessingUtil;
 import cn.aspes.agri.trade.vo.PurchaseContractVO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.swagger.v3.oas.annotations.Operation;
@@ -47,6 +48,13 @@ public class PurchaseContractController {
     public Result<Void> signContract(@PathVariable Long contractId,
                                       @AuthenticationPrincipal CustomUserDetails userDetails,
                                       @RequestPart(value = "signFile", required = true) MultipartFile signFile) {
+        // 检查签字文件大小
+        try {
+            ImageProcessingUtil.checkFileSize(signFile);
+        } catch (IllegalArgumentException e) {
+            return Result.error(400, e.getMessage());
+        }
+        
         String role = userDetails.getRole() == UserRole.FARMER ? "farmer" : "purchaser";
         purchaseContractService.signContract(contractId, userDetails.getId(), signFile, role);
         return Result.success();

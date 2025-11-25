@@ -5,6 +5,7 @@ import cn.aspes.agri.trade.dto.ProductImageRequest;
 import cn.aspes.agri.trade.entity.ProductImage;
 import cn.aspes.agri.trade.enums.ProductImageType;
 import cn.aspes.agri.trade.service.ProductImageService;
+import cn.aspes.agri.trade.util.ImageProcessingUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.v3.oas.annotations.Operation;
@@ -44,6 +45,13 @@ public class ProductImageController {
                                     @RequestParam ProductImageType imageType,
                                     @RequestParam(required = false) Integer sort,
                                     @RequestParam("file") MultipartFile file) {
+        // 检查文件大小
+        try {
+            ImageProcessingUtil.checkFileSize(file);
+        } catch (IllegalArgumentException e) {
+            return Result.error(400, e.getMessage());
+        }
+        
         ProductImageRequest request = new ProductImageRequest();
         request.setFile(file);
         request.setImageType(imageType);
@@ -65,6 +73,17 @@ public class ProductImageController {
     @PostMapping(value = "/batch-upload", consumes = {"multipart/form-data"})
     public Result<List<Long>> batchUploadImages(@RequestParam Long productId,
                                                 @ModelAttribute @Valid ProductImageRequest[] requests) {
+        // 检查每个文件的大小
+        for (ProductImageRequest request : requests) {
+            if (request.getFile() != null) {
+                try {
+                    ImageProcessingUtil.checkFileSize(request.getFile());
+                } catch (IllegalArgumentException e) {
+                    return Result.error(400, e.getMessage());
+                }
+            }
+        }
+        
         // 将数组转换为列表
         List<ProductImageRequest> requestList = List.of(requests);
         productImageService.saveProductImages(productId, requestList);

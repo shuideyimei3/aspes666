@@ -3,10 +3,12 @@ package cn.aspes.agri.trade.controller.b2c;
 import cn.aspes.agri.trade.common.Result;
 import cn.aspes.agri.trade.converter.EntityVOConverter;
 import cn.aspes.agri.trade.dto.FarmerProductRequest;
+import cn.aspes.agri.trade.dto.ProductImageRequest;
 import cn.aspes.agri.trade.entity.FarmerProduct;
 import cn.aspes.agri.trade.security.CustomUserDetails;
 import cn.aspes.agri.trade.service.FarmerInfoService;
 import cn.aspes.agri.trade.service.FarmerProductService;
+import cn.aspes.agri.trade.util.ImageProcessingUtil;
 import cn.aspes.agri.trade.vo.FarmerProductVO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.swagger.v3.oas.annotations.Operation;
@@ -40,6 +42,17 @@ public class ProductController {
     @PreAuthorize("hasRole('FARMER')")
     public Result<Long> publishProduct(@AuthenticationPrincipal CustomUserDetails userDetails,
                                         @Valid @ModelAttribute FarmerProductRequest request) {
+        // 检查产品图片大小
+        if (request.getProductImageDetails() != null) {
+            for (ProductImageRequest imageRequest : request.getProductImageDetails()) {
+                try {
+                    ImageProcessingUtil.checkFileSize(imageRequest.getFile());
+                } catch (IllegalArgumentException e) {
+                    return Result.error(400, e.getMessage());
+                }
+            }
+        }
+        
         Long farmerId = farmerInfoService.getByUserId(userDetails.getId()).getId();
         Long productId = farmerProductService.publishProduct(farmerId, request);
         return Result.success(productId);
@@ -51,6 +64,17 @@ public class ProductController {
     public Result<Void> updateProduct(@PathVariable Long productId,
                                        @AuthenticationPrincipal CustomUserDetails userDetails,
                                        @Valid @ModelAttribute FarmerProductRequest request) {
+        // 检查产品图片大小
+        if (request.getProductImageDetails() != null) {
+            for (ProductImageRequest imageRequest : request.getProductImageDetails()) {
+                try {
+                    ImageProcessingUtil.checkFileSize(imageRequest.getFile());
+                } catch (IllegalArgumentException e) {
+                    return Result.error(400, e.getMessage());
+                }
+            }
+        }
+        
         Long farmerId = farmerInfoService.getByUserId(userDetails.getId()).getId();
         farmerProductService.updateProduct(productId, farmerId, request);
         return Result.success();

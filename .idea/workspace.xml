@@ -84,6 +84,7 @@
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
+<<<<<<< HEAD
     "project.structure.last.edited": "模块",
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.2",
@@ -91,6 +92,14 @@
     "to.speed.mode.migration.done": "true",
     "vue.rearranger.settings.migration": "true",
     "应用程序.AgriTradePlatformApplication.executor": "Run"
+=======
+    "project.structure.last.edited": "SDK",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "Qoder",
+    "to.speed.mode.migration.done": "true",
+    "vue.rearranger.settings.migration": "true"
+>>>>>>> 41c7896 (Add image compression functionality)
   }
 }]]></component>
   <component name="ReactorSettings">
@@ -98,7 +107,11 @@
   </component>
   <component name="RunManager">
     <configuration name="AgriTradePlatformApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+<<<<<<< HEAD
       <module name="trade-platform" />
+=======
+      <module name="aspes" />
+>>>>>>> 41c7896 (Add image compression functionality)
       <option name="SPRING_BOOT_MAIN_CLASS" value="cn.aspes.agri.trade.AgriTradePlatformApplication" />
       <method v="2">
         <option name="Make" enabled="true" />

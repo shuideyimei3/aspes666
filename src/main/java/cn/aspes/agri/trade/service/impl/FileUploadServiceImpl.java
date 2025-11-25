@@ -3,6 +3,7 @@ package cn.aspes.agri.trade.service.impl;
 import cn.aspes.agri.trade.config.AliyunOssConfig;
 import cn.aspes.agri.trade.exception.BusinessException;
 import cn.aspes.agri.trade.service.FileUploadService;
+import cn.aspes.agri.trade.util.ImageProcessingUtil;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.model.PutObjectRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -36,11 +38,22 @@ public class FileUploadServiceImpl implements FileUploadService {
                 throw new BusinessException("OSS客户端未配置，请检查阿里云配置");
             }
             
+            // 对图片文件进行大小检查和压缩处理
+            InputStream inputStream;
+            if (isImageFile(file)) {
+                // 检查文件大小并压缩图片到300KB以内
+                byte[] compressedImage = ImageProcessingUtil.compressImageToTargetSize(file);
+                inputStream = new ByteArrayInputStream(compressedImage);
+            } else {
+                // 非图片文件直接上传
+                inputStream = file.getInputStream();
+            }
+            
             String fileName = generateFileName(file.getOriginalFilename());
             String objectName = aliyunOssConfig.getBasePath() + "/" + bucketName + "/" + 
                               LocalDate.now() + "/" + fileName;
             
-            try (InputStream inputStream = file.getInputStream()) {
+            try {
                 PutObjectRequest putObjectRequest = new PutObjectRequest(
                         aliyunOssConfig.getBucketName(),
                         objectName,
@@ -48,12 +61,19 @@ public class FileUploadServiceImpl implements FileUploadService {
                 );
                 putObjectRequest.setMetadata(null);
                 ossClient.putObject(putObjectRequest);
+            } finally {
+                if (inputStream != null) {
+                    inputStream.close();
+                }
             }
             
             // 拼接完整的文件访问URL
             String url = aliyunOssConfig.getEndpoint().replace("https://", "https://" + 
                         aliyunOssConfig.getBucketName() + ".");
             return url + "/" + objectName;
+        } catch (IllegalArgumentException e) {
+            log.error("文件大小超出限制: {}", e.getMessage());
+            throw new BusinessException(e.getMessage());
         } catch (Exception e) {
             log.error("文件上传失败: {}", e.getMessage());
             throw new BusinessException("文件上传失败: " + e.getMessage());
@@ -133,5 +153,16 @@ public class FileUploadServiceImpl implements FileUploadService {
     private String generateFileName(String originalFilename) {
         String suffix = originalFilename.substring(originalFilename.lastIndexOf("."));
         return UUID.randomUUID() + suffix;
+    }
+    
+    /**
+     * 判断文件是否为图片类型
+     */
+    private boolean isImageFile(MultipartFile file) {
+        if (file == null || file.getContentType() == null) {
+            return false;
+        }
+        String contentType = file.getContentType().toLowerCase();
+        return contentType.startsWith("image/");
     }
 }
