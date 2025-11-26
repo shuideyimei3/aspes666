@@ -8,7 +8,12 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+
+import java.io.Serializable;
+import java.util.List;
 
 /**
  * 产地信息服务实现类
@@ -17,6 +22,19 @@ import org.springframework.stereotype.Service;
 public class OriginAreaServiceImpl extends ServiceImpl<OriginAreaMapper, OriginArea> implements OriginAreaService {
     
     @Override
+    @Cacheable(value = "originAreas", key = "'list'")
+    public List<OriginArea> list() {
+        return super.list();
+    }
+    
+    @Override
+    @Cacheable(value = "originAreas", key = "'id:' + #id")
+    public OriginArea getById(Serializable id) {
+        return super.getById(id);
+    }
+    
+    @Override
+    @Cacheable(value = "originAreas", key = "'page:' + #current + ':' + #size + ':' + #province + ':' + #city + ':' + #isPovertyArea")
     public Page<OriginArea> pageQuery(Integer current, Integer size, String province, String city, Boolean isPovertyArea) {
         Page<OriginArea> page = new Page<>(current, size);
         LambdaQueryWrapper<OriginArea> wrapper = new LambdaQueryWrapper<>();
@@ -38,6 +56,7 @@ public class OriginAreaServiceImpl extends ServiceImpl<OriginAreaMapper, OriginA
     }
     
     @Override
+    @CacheEvict(value = "originAreas", allEntries = true)
     public boolean save(OriginArea entity) {
         if (!checkAreaCodeUnique(entity.getAreaCode(), null)) {
             throw new BusinessException("产地编码已存在");
@@ -46,10 +65,17 @@ public class OriginAreaServiceImpl extends ServiceImpl<OriginAreaMapper, OriginA
     }
     
     @Override
+    @CacheEvict(value = "originAreas", allEntries = true)
     public boolean updateById(OriginArea entity) {
         if (!checkAreaCodeUnique(entity.getAreaCode(), entity.getAreaId())) {
             throw new BusinessException("产地编码已存在");
         }
         return super.updateById(entity);
+    }
+    
+    @Override
+    @CacheEvict(value = "originAreas", allEntries = true)
+    public boolean removeById(Serializable id) {
+        return super.removeById(id);
     }
 }

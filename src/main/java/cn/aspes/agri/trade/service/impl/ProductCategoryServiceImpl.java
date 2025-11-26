@@ -6,8 +6,11 @@ import cn.aspes.agri.trade.mapper.ProductCategoryMapper;
 import cn.aspes.agri.trade.service.ProductCategoryService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -17,6 +20,19 @@ import java.util.List;
 public class ProductCategoryServiceImpl extends ServiceImpl<ProductCategoryMapper, ProductCategory> implements ProductCategoryService {
     
     @Override
+    @Cacheable(value = "productCategories", key = "'list'")
+    public List<ProductCategory> list() {
+        return super.list();
+    }
+    
+    @Override
+    @Cacheable(value = "productCategories", key = "'id:' + #id")
+    public ProductCategory getById(Serializable id) {
+        return super.getById(id);
+    }
+    
+    @Override
+    @Cacheable(value = "productCategories", key = "'treeList'")
     public List<ProductCategory> getTreeList() {
         return list(new LambdaQueryWrapper<ProductCategory>()
                 .eq(ProductCategory::getStatus, "active")
@@ -36,6 +52,7 @@ public class ProductCategoryServiceImpl extends ServiceImpl<ProductCategoryMappe
     }
     
     @Override
+    @CacheEvict(value = "productCategories", allEntries = true)
     public boolean save(ProductCategory entity) {
         if (!checkNameUnique(entity.getName(), entity.getParentId(), null)) {
             throw new BusinessException("同级分类名称已存在");
@@ -44,10 +61,17 @@ public class ProductCategoryServiceImpl extends ServiceImpl<ProductCategoryMappe
     }
     
     @Override
+    @CacheEvict(value = "productCategories", allEntries = true)
     public boolean updateById(ProductCategory entity) {
         if (!checkNameUnique(entity.getName(), entity.getParentId(), entity.getId())) {
             throw new BusinessException("同级分类名称已存在");
         }
         return super.updateById(entity);
+    }
+    
+    @Override
+    @CacheEvict(value = "productCategories", allEntries = true)
+    public boolean removeById(Serializable id) {
+        return super.removeById(id);
     }
 }

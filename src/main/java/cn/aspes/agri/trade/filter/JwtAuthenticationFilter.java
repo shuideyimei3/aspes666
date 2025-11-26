@@ -11,6 +11,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -24,10 +25,14 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     
     private final JwtUtil jwtUtil;
     private final StatisticsService statisticsService;
+    private final RedisTemplate<String, Object> redisTemplate;
+    
+    private static final String TOKEN_PREFIX = "token:";
     
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) 
@@ -35,7 +40,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         
         String token = getTokenFromRequest(request);
         
-        if (StrUtil.isNotBlank(token) && !jwtUtil.isTokenExpired(token)) {
+        // 验证Token是否过期和是否在Redis中有效
+        if (StrUtil.isNotBlank(token) && !jwtUtil.isTokenExpired(token) && isTokenValid(token)) {
             try {
                 Claims claims = jwtUtil.parseToken(token);
                 Long userId = Long.parseLong(claims.getSubject());
@@ -66,6 +72,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         
         filterChain.doFilter(request, response);
+    }
+    
+    /**
+     * 检查Token是否在Redis中有效
+     */
+    private boolean isTokenValid(String token) {
+        if (token == null || token.isEmpty()) {
+            return false;
+        }
+        // 检查token是否存在于redis中
+        return Boolean.TRUE.equals(redisTemplate.hasKey(TOKEN_PREFIX + token));
     }
     
     private String getTokenFromRequest(HttpServletRequest request) {

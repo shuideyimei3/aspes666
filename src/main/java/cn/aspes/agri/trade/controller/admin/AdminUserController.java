@@ -51,6 +51,13 @@ public class AdminUserController {
         return Result.success();
     }
     
+    @Operation(summary = "强制用户下线")
+    @PostMapping("/{userId}/force-logout")
+    public Result<Void> forceLogout(@PathVariable Long userId) {
+        userService.forceLogout(userId);
+        return Result.success();
+    }
+    
     @Operation(summary = "分页查询农户信息（审核）")
     @GetMapping("/farmers/page")
     public Result<Page<FarmerInfo>> pageFarmers(

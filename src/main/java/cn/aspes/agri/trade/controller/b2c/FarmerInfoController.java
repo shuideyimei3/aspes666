@@ -3,6 +3,7 @@ package cn.aspes.agri.trade.controller.b2c;
 import cn.aspes.agri.trade.common.Result;
 import cn.aspes.agri.trade.dto.FarmerInfoRequest;
 import cn.aspes.agri.trade.entity.FarmerInfo;
+import cn.aspes.agri.trade.enums.UserRole;
 import cn.aspes.agri.trade.exception.BusinessException;
 import cn.aspes.agri.trade.security.CustomUserDetails;
 import cn.aspes.agri.trade.service.FarmerInfoService;
@@ -52,6 +53,11 @@ public class FarmerInfoController {
                                      @RequestPart(value = "idCardFrontFile", required = true) MultipartFile idCardFrontFile,
                                      @RequestPart(value = "idCardBackFile", required = true) MultipartFile idCardBackFile,
                                      @Valid @ModelAttribute FarmerInfoRequest request) {
+        // 双重验证确保只有农户角色能提交农户信息
+        if (userDetails.getRole() != UserRole.FARMER) {
+            throw new BusinessException("只有农户角色才能提交农户信息");
+        }
+        
         // 设置上传的文件
         request.setIdCardFrontFile(idCardFrontFile);
         request.setIdCardBackFile(idCardBackFile);

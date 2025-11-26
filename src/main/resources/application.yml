@@ -39,3 +39,12 @@ springdoc:
     path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
+
+# Redis 时间配置
+redis:
+  # Spring Cache 注解缓存过期时间（小时）
+  cache-ttl-hours: 1
+  # 登录失败最大次数
+  login-fail-max-count: 5
+  # 登录失败锁定时间（分钟）
+  login-fail-lock-time-minutes: 30

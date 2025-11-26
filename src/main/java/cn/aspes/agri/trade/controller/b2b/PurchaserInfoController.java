@@ -3,6 +3,7 @@ package cn.aspes.agri.trade.controller.b2b;
 import cn.aspes.agri.trade.common.Result;
 import cn.aspes.agri.trade.dto.PurchaserInfoRequest;
 import cn.aspes.agri.trade.entity.PurchaserInfo;
+import cn.aspes.agri.trade.enums.UserRole;
 import cn.aspes.agri.trade.exception.BusinessException;
 import cn.aspes.agri.trade.security.CustomUserDetails;
 import cn.aspes.agri.trade.service.PurchaserInfoService;
@@ -32,6 +33,11 @@ public class PurchaserInfoController {
     public Result<Void> submitPurchaserInfo(@AuthenticationPrincipal CustomUserDetails userDetails,
                                             @RequestPart(value = "businessLicenseFile", required = true) MultipartFile businessLicenseFile,
                                             @Valid @ModelAttribute PurchaserInfoRequest request) {
+        // 双重验证确保只有采购方角色能提交采购方信息
+        if (userDetails.getRole() != UserRole.PURCHASER) {
+            throw new BusinessException("只有采购方角色才能提交采购方信息");
+        }
+        
         // 设置上传的文件
         request.setBusinessLicenseFile(businessLicenseFile);
         

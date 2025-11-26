@@ -41,13 +41,12 @@ public class AdminPaymentController {
             @RequestParam(required = false) String status) {
         
         Page<PaymentRecord> paymentPage = paymentRecordService.pageAllPayments(current, size, orderId, status);
-        
-        // 使用EntityVOConverter转换为VO
+
         Page<PaymentRecordVO> voPage = entityVOConverter.toPaymentRecordVOPage(paymentPage);
-        
+
         return Result.success(voPage);
     }
-    
+
     /**
      * 分页查询采购方支付记录（根据采购方ID）
      */
@@ -59,16 +58,15 @@ public class AdminPaymentController {
             @RequestParam(defaultValue = "1") Integer current,
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) String status) {
-        
+
         Page<PaymentRecord> paymentPage = paymentRecordService.pagePaymentsByPurchaserId(
                 purchaserId, current, size, status);
-        
-        // 使用EntityVOConverter转换为VO
+
         Page<PaymentRecordVO> voPage = entityVOConverter.toPaymentRecordVOPage(paymentPage);
-        
+
         return Result.success(voPage);
     }
-    
+
     /**
      * 分页查询采购方支付记录（根据采购方公司名称）
      */
@@ -80,20 +78,19 @@ public class AdminPaymentController {
             @RequestParam(defaultValue = "1") Integer current,
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) String status) {
-        
+
         // 根据公司名称查询采购方
         PurchaserInfo purchaserInfo = purchaserInfoService.getByName(purchaserName);
         if (purchaserInfo == null) {
             return Result.success(new Page<>());
         }
-        
+
         // 查询该采购方的支付记录
         Page<PaymentRecord> paymentPage = paymentRecordService.pagePaymentsByPurchaserId(
                 purchaserInfo.getId(), current, size, status);
-        
-        // 使用EntityVOConverter转换为VO
+
         Page<PaymentRecordVO> voPage = entityVOConverter.toPaymentRecordVOPage(paymentPage);
-        
+
         return Result.success(voPage);
     }
     

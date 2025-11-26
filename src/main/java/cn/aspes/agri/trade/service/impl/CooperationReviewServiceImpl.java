@@ -25,8 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class CooperationReviewServiceImpl extends ServiceImpl<CooperationReviewMapper, CooperationReview> implements CooperationReviewService {
-    
-    // ✅ 修复：移除PurchaseOrderService依赖，改用PurchaseOrderMapper防止循环依赖
+
     private final PurchaseOrderMapper purchaseOrderMapper;
     private final SnowflakeIdGenerator idGenerator;
     private final FarmerInfoService farmerInfoService;
@@ -35,7 +34,7 @@ public class CooperationReviewServiceImpl extends ServiceImpl<CooperationReviewM
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void submitReview(CooperationReview review, Long currentUserId) {
-        // ✅ 修复：使用Mapper直接查询，避免循环依赖
+
         // 验证订单状态
         PurchaseOrder order = purchaseOrderMapper.selectById(review.getOrderId());
         if (order == null) {

@@ -20,6 +20,16 @@ public interface UserService extends IService<User> {
     LoginResponse login(LoginRequest request);
     
     /**
+     * 用户登出
+     */
+    void logout(String token);
+    
+    /**
+     * 验证Token是否有效（未被登出）
+     */
+    boolean isTokenValid(String token);
+    
+    /**
      * 用户注册
      */
     Long register(UserRegisterRequest request);
@@ -48,4 +58,9 @@ public interface UserService extends IService<User> {
      * 禁用/启用用户（管理员）
      */
     void toggleUserStatus(Long userId, Integer isDelete);
+    
+    /**
+     * 强制用户下线（管理员）
+     */
+    void forceLogout(Long userId);
 }

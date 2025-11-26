@@ -186,14 +186,12 @@ public class PaymentRecordServiceImpl extends ServiceImpl<PaymentRecordMapper, P
         try {
             PurchaseOrder order = purchaseOrderMapper.selectById(orderId);
             if (order != null) {
-                // ✅ 修复：检查是否已经是已支付状态，并提前退出，不进行重复更新
                 if (order.getStatus() == OrderStatus.PAID || 
                     order.getStatus() == OrderStatus.COMPLETED) {
                     log.warn("订单已支付或已完成，不需要重复更新: orderId={}", orderId);
                     return;
                 }
-                
-                // ✅ 修改状态流转：支持PENDING_INSPECTION和DELIVERED两种状态进行支付
+
                 if (order.getStatus() == OrderStatus.PENDING_INSPECTION || order.getStatus() == OrderStatus.DELIVERED) {
                     order.setStatus(OrderStatus.PAID);
                     purchaseOrderMapper.updateById(order);
