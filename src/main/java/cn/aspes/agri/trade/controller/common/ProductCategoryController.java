@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * 共享 - 产品分类管理控制器
  */
-@Tag(name = "共享 - 产品分类")
+@Tag(name = "通用 - 产品分类")
 @RestController
 @RequestMapping("/api/shared/product-category")
 @RequiredArgsConstructor

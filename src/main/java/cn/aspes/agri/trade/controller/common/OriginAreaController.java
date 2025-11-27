@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 /**
  * 共享 - 产地管理控制器
  */
-@Tag(name = "共享 - 产地管理")
+@Tag(name = "通用 - 产地管理")
 @RestController
 @RequestMapping("/api/shared/origin-area")
 @RequiredArgsConstructor

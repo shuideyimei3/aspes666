@@ -16,13 +16,14 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 /**
  * 共享 - 对接记录管理控制器
  */
-@Tag(name = "共享 - 对接记录")
+@Tag(name = "通用 - 对接记录")
 @RestController
 @RequestMapping("/api/shared/dockings")
 public class DockingRecordController {
@@ -41,6 +42,7 @@ public class DockingRecordController {
     
     @Operation(summary = "农户响应需求")
     @PostMapping("/respond")
+    @PreAuthorize("hasRole('FARMER')")
     public Result<Long> respondToDemand(@AuthenticationPrincipal CustomUserDetails userDetails,
                                          @Valid @RequestBody DockingRecordRequest request) {
         Long farmerId = farmerInfoService.getByUserId(userDetails.getId()).getId();
@@ -50,6 +52,7 @@ public class DockingRecordController {
     
     @Operation(summary = "采购方处理对接")
     @PutMapping("/{dockingId}/handle")
+    @PreAuthorize("hasRole('PURCHASER')")
     public Result<Void> handleDocking(@PathVariable Long dockingId,
                                        @AuthenticationPrincipal CustomUserDetails userDetails,
                                        @Valid @RequestBody DockingFeedbackRequest request) {
