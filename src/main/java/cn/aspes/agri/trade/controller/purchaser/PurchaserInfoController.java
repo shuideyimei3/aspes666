@@ -1,10 +1,8 @@
-package cn.aspes.agri.trade.controller.b2b;
+package cn.aspes.agri.trade.controller.purchaser;
 
 import cn.aspes.agri.trade.common.Result;
 import cn.aspes.agri.trade.dto.PurchaserInfoRequest;
 import cn.aspes.agri.trade.entity.PurchaserInfo;
-import cn.aspes.agri.trade.enums.UserRole;
-import cn.aspes.agri.trade.exception.BusinessException;
 import cn.aspes.agri.trade.security.CustomUserDetails;
 import cn.aspes.agri.trade.service.PurchaserInfoService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,7 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @Tag(name = "B端 - 采购方管理")
 @RestController
-@RequestMapping("/api/b2b/purchaser-info")
+@RequestMapping("/api/purchaser/purchaser-info")
 public class PurchaserInfoController {
     
     @Resource

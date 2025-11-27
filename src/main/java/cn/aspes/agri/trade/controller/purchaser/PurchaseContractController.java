@@ -1,4 +1,4 @@
-package cn.aspes.agri.trade.controller.b2b;
+package cn.aspes.agri.trade.controller.purchaser;
 
 import cn.aspes.agri.trade.common.Result;
 import cn.aspes.agri.trade.converter.EntityVOConverter;
@@ -23,7 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @Tag(name = "B端 - 采购合同")
 @RestController
-@RequestMapping("/api/b2b/contracts")
+@RequestMapping("/api/purchaser/contracts")
 public class PurchaseContractController {
     
     @Resource

@@ -1,4 +1,4 @@
-package cn.aspes.agri.trade.controller.b2b;
+package cn.aspes.agri.trade.controller.purchaser;
 
 import cn.aspes.agri.trade.common.Result;
 import cn.aspes.agri.trade.entity.PurchaseOrder;
@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @Tag(name = "B端 - 采购订单")
 @RestController
-@RequestMapping("/api/b2b/orders")
+@RequestMapping("/api/purchaser/orders")
 public class PurchaseOrderController {
     
     @Resource

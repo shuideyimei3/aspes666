@@ -1,4 +1,4 @@
-package cn.aspes.agri.trade.controller.b2b;
+package cn.aspes.agri.trade.controller.purchaser;
 
 import cn.aspes.agri.trade.common.Result;
 import cn.aspes.agri.trade.converter.EntityVOConverter;
@@ -6,16 +6,12 @@ import cn.aspes.agri.trade.dto.PaymentRequest;
 import cn.aspes.agri.trade.entity.PaymentRecord;
 import cn.aspes.agri.trade.security.CustomUserDetails;
 import cn.aspes.agri.trade.service.PaymentRecordService;
-import cn.aspes.agri.trade.vo.PaymentRecordVO;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
-import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -23,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @Tag(name = "B端 - 支付管理")
 @RestController
-@RequestMapping("/api/b2b/payments")
+@RequestMapping("/api/purchaser/payments")
 public class PaymentController {
     
     @Resource

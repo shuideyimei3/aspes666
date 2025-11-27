@@ -1,13 +1,10 @@
-package cn.aspes.agri.trade.controller.b2c;
+package cn.aspes.agri.trade.controller.farmer;
 
 import cn.aspes.agri.trade.common.Result;
 import cn.aspes.agri.trade.dto.FarmerInfoRequest;
 import cn.aspes.agri.trade.entity.FarmerInfo;
-import cn.aspes.agri.trade.enums.UserRole;
-import cn.aspes.agri.trade.exception.BusinessException;
 import cn.aspes.agri.trade.security.CustomUserDetails;
 import cn.aspes.agri.trade.service.FarmerInfoService;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
@@ -22,7 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @Tag(name = "C端 - 农户管理")
 @RestController
-@RequestMapping("/api/c2c/farmer-info")
+@RequestMapping("/api/farmer/farmer-info")
 public class FarmerInfoController {
     
     @Resource

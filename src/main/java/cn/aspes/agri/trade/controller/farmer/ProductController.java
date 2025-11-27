@@ -1,10 +1,9 @@
-package cn.aspes.agri.trade.controller.b2c;
+package cn.aspes.agri.trade.controller.farmer;
 
 import cn.aspes.agri.trade.common.Result;
 import cn.aspes.agri.trade.converter.EntityVOConverter;
 import cn.aspes.agri.trade.dto.FarmerProductRequest;
 import cn.aspes.agri.trade.dto.ProductImageRequest;
-import cn.aspes.agri.trade.entity.FarmerProduct;
 import cn.aspes.agri.trade.security.CustomUserDetails;
 import cn.aspes.agri.trade.service.FarmerInfoService;
 import cn.aspes.agri.trade.service.FarmerProductService;
@@ -18,14 +17,13 @@ import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 /**
  * C端 - 产品管理控制器
  */
 @Tag(name = "C端 - 产品管理")
 @RestController
-@RequestMapping("/api/c2c/products")
+@RequestMapping("/api/farmer/products")
 public class ProductController {
     
     @Resource

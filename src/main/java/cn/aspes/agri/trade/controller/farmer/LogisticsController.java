@@ -1,4 +1,4 @@
-package cn.aspes.agri.trade.controller.b2c;
+package cn.aspes.agri.trade.controller.farmer;
 
 import cn.aspes.agri.trade.common.Result;
 import cn.aspes.agri.trade.converter.EntityVOConverter;
@@ -25,7 +25,7 @@ import java.util.List;
  */
 @Tag(name = "C端 - 物流跟踪")
 @RestController
-@RequestMapping("/api/b2c/logistics")
+@RequestMapping("/api/farmer/logistics")
 public class LogisticsController {
     
     @Resource
