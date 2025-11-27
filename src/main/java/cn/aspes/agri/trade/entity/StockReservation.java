@@ -1,6 +1,7 @@
 package cn.aspes.agri.trade.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
+import cn.aspes.agri.trade.enums.ReservationStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -35,9 +36,9 @@ public class StockReservation {
     private Integer reservedQuantity;
     
     /**
-     * 预留状态：reserved(已预留) released(已释放) expired(已过期)
+     * 预留状态
      */
-    private String status;
+    private ReservationStatus status;
     
     /**
      * 释放原因

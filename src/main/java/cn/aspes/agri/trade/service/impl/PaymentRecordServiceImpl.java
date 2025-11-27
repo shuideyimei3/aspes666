@@ -1,11 +1,7 @@
 package cn.aspes.agri.trade.service.impl;
 
 import cn.aspes.agri.trade.dto.PaymentRequest;
-import cn.aspes.agri.trade.entity.PaymentRecord;
-import cn.aspes.agri.trade.entity.PurchaseOrder;
-import cn.aspes.agri.trade.entity.PurchaseContract;
-import cn.aspes.agri.trade.entity.FarmerInfo;
-import cn.aspes.agri.trade.entity.PurchaserInfo;
+import cn.aspes.agri.trade.entity.*;
 import cn.aspes.agri.trade.enums.OrderStatus;
 import cn.aspes.agri.trade.enums.PaymentStatus;
 import cn.aspes.agri.trade.exception.BusinessException;
@@ -215,7 +211,7 @@ public class PaymentRecordServiceImpl extends ServiceImpl<PaymentRecordMapper, P
     @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
     public void confirmStockReservationAsync(Long orderId) {
         try {
-            cn.aspes.agri.trade.entity.StockReservation reservation = stockReservationService.getByOrderId(orderId);
+            StockReservation reservation = stockReservationService.getActiveReservationByOrderId(orderId);
             if (reservation != null) {
                 stockReservationService.confirmReservation(reservation.getId());
                 log.info("库存预留确认成功，订单={}", orderId);

@@ -1,6 +1,9 @@
 package cn.aspes.agri.trade.scheduled;
 
 import cn.aspes.agri.trade.entity.StockReservation;
+import cn.aspes.agri.trade.entity.FarmerProduct;
+import cn.aspes.agri.trade.enums.ReservationStatus;
+import cn.aspes.agri.trade.service.FarmerProductService;
 import cn.aspes.agri.trade.mapper.StockReservationMapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -21,6 +24,7 @@ import java.util.List;
 public class StockReservationScheduler {
     
     private final StockReservationMapper stockReservationMapper;
+    private final FarmerProductService farmerProductService;
     
     /**
      * 每小时执行一次，释放已过期的库存预留
@@ -32,7 +36,7 @@ public class StockReservationScheduler {
             // 查询已过期且状态为"预留"的预留记录
             List<StockReservation> expiredReservations = stockReservationMapper.selectList(
                     new LambdaQueryWrapper<StockReservation>()
-                            .eq(StockReservation::getStatus, "reserved")
+                            .eq(StockReservation::getStatus, ReservationStatus.PENDING)
                             .lt(StockReservation::getExpiredTime, LocalDateTime.now())
             );
             
@@ -41,9 +45,15 @@ public class StockReservationScheduler {
                 return;
             }
             
-            // 批量更新为已过期状态
+            // 批量更新为已过期状态，并回补库存
             for (StockReservation reservation : expiredReservations) {
-                reservation.setStatus("expired");
+                FarmerProduct product = farmerProductService.getById(reservation.getProductId());
+                if (product != null) {
+                    product.setStock(product.getStock() + reservation.getReservedQuantity());
+                    farmerProductService.updateById(product);
+                }
+
+                reservation.setStatus(ReservationStatus.EXPIRED);
                 reservation.setReleaseReason("自动过期释放");
                 stockReservationMapper.updateById(reservation);
                 

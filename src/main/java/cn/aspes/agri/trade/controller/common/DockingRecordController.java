@@ -1,4 +1,4 @@
-package cn.aspes.agri.trade.controller.shared;
+package cn.aspes.agri.trade.controller.common;
 
 import cn.aspes.agri.trade.common.Result;
 import cn.aspes.agri.trade.converter.EntityVOConverter;

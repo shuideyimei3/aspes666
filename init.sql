@@ -314,7 +314,7 @@ CREATE TABLE IF NOT EXISTS `stock_reservation` (
     `product_id` bigint NOT NULL COMMENT '关联产品',
     `order_id` bigint NOT NULL COMMENT '关联订单',
     `reserved_quantity` INT NOT NULL COMMENT '预留数量',
-    `status` ENUM('reserved','released','expired') DEFAULT 'reserved' COMMENT '预留状态：已预留/已释放/已过期',
+    `status` ENUM('pending','confirmed','released','expired') DEFAULT 'pending' COMMENT '预留状态：已预留/已确认/已释放/已过期',
     `release_reason` VARCHAR(200) COMMENT '释放原因（取消/过期等）',
     `create_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `update_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

@@ -20,6 +20,7 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
     
     @Override
     public void updateFill(MetaObject metaObject) {
-        this.strictUpdateFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
+        // 使用 setFieldValByName 强制更新，即使字段不为 null 也会更新
+        this.setFieldValByName("updateTime", LocalDateTime.now(), metaObject);
     }
 }

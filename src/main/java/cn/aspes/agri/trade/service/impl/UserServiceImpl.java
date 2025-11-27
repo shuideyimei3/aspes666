@@ -119,16 +119,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 如果需要，也可以将token加入黑名单
         // redisTemplate.opsForValue().set("blacklist:" + token, true, expirationTime, TimeUnit.SECONDS);
     }
-    
-    @Override
-    public boolean isTokenValid(String token) {
-        if (token == null || token.isEmpty()) {
-            return false;
-        }
-        // 检查token是否存在于redis中
-        return Boolean.TRUE.equals(redisTemplate.hasKey(TOKEN_PREFIX + token));
-    }
-    
+
     @Override
     public void forceLogout(Long userId) {
         // 获取用户的token
@@ -139,7 +130,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             redisTemplate.delete(USER_TOKEN_PREFIX + userId);
         }
     }
-    
     @Override
     @Transactional(rollbackFor = Exception.class)
     @CacheEvict(value = "users", allEntries = true)

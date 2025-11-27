@@ -25,11 +25,6 @@ public interface UserService extends IService<User> {
     void logout(String token);
     
     /**
-     * 验证Token是否有效（未被登出）
-     */
-    boolean isTokenValid(String token);
-    
-    /**
      * 用户注册
      */
     Long register(UserRegisterRequest request);

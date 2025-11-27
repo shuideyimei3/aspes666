@@ -24,7 +24,7 @@ public class ImageProcessingUtil {
     // 默认压缩质量
     private static final float DEFAULT_QUALITY = 0.8f;
     // 最大文件大小 5MB
-    private static final long MAX_FILE_SIZE = 10 * 1024 * 1024;
+    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024;
     // 目标压缩大小 300KB
     private static final long TARGET_COMPRESSED_SIZE = 300 * 1024;
 
@@ -53,6 +53,10 @@ public class ImageProcessingUtil {
 
             // 读取原始图片
             BufferedImage originalImage = ImageIO.read(file.getInputStream());
+            if (originalImage == null) {
+                log.error("无法读取图片，可能是不支持的格式或文件损坏: {}", file.getOriginalFilename());
+                throw new IllegalArgumentException("不支持的图片格式或文件已损坏，请上传jpg/png/gif格式");
+            }
 
             // 获取原始图片尺寸
             int originalWidth = originalImage.getWidth();
@@ -168,6 +172,10 @@ public class ImageProcessingUtil {
         try {
             // 读取原始图片
             BufferedImage originalImage = ImageIO.read(file.getInputStream());
+            if (originalImage == null) {
+                log.error("无法读取图片，可能是不支持的格式或文件损坏: {}", file.getOriginalFilename());
+                throw new IllegalArgumentException("不支持的图片格式或文件已损坏，请上传jpg/png/gif格式");
+            }
 
             // 获取原始图片尺寸
             int originalWidth = originalImage.getWidth();
@@ -212,6 +220,10 @@ public class ImageProcessingUtil {
     public static byte[] createThumbnail(MultipartFile file, int size) {
         try {
             BufferedImage originalImage = ImageIO.read(file.getInputStream());
+            if (originalImage == null) {
+                log.error("无法读取图片，可能是不支持的格式或文件损坏: {}", file.getOriginalFilename());
+                throw new IllegalArgumentException("不支持的图片格式或文件已损坏，请上传jpg/png/gif格式");
+            }
 
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             Thumbnails.of(originalImage)
