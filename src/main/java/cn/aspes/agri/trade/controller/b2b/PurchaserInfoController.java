@@ -33,14 +33,7 @@ public class PurchaserInfoController {
     public Result<Void> submitPurchaserInfo(@AuthenticationPrincipal CustomUserDetails userDetails,
                                             @RequestPart(value = "businessLicenseFile", required = true) MultipartFile businessLicenseFile,
                                             @Valid @ModelAttribute PurchaserInfoRequest request) {
-        // 双重验证确保只有采购方角色能提交采购方信息
-        if (userDetails.getRole() != UserRole.PURCHASER) {
-            throw new BusinessException("只有采购方角色才能提交采购方信息");
-        }
-        
-        // 设置上传的文件
         request.setBusinessLicenseFile(businessLicenseFile);
-        
         purchaserInfoService.submitPurchaserInfo(userDetails.getId(), request);
         return Result.success();
     }
@@ -49,9 +42,6 @@ public class PurchaserInfoController {
     @GetMapping("/{id}")
     public Result<PurchaserInfo> getDetail(@PathVariable Long id) {
         PurchaserInfo purchaserInfo = purchaserInfoService.getById(id);
-        if (purchaserInfo == null) {
-            throw new BusinessException("采购方信息不存在");
-        }
         return Result.success(purchaserInfo);
     }
     

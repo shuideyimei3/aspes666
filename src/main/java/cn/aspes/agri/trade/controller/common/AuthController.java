@@ -43,9 +43,7 @@ public class AuthController {
     @PostMapping("/logout")
     public Result<Void> logout(HttpServletRequest request) {
         String token = getTokenFromRequest(request);
-        if (token != null) {
-            userService.logout(token);
-        }
+        userService.logout(token);
         return Result.success();
     }
     

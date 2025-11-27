@@ -144,23 +144,30 @@ public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, P
 
     
     /**
-     * 订单完成
+     * 采购方确认订单（带权限验证）
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void completeOrder(Long orderId) {
-        // 1. 查询订单
-        PurchaseOrder order = getById(orderId);
+    public void completeOrder(Long orderId, Long userId) {
+        // 1. 验证当前用户是否有权限操作该订单
+        Long purchaserId = purchaserInfoService.getByUserId(userId).getId();
+        PurchaseOrder order = getOrderDetail(orderId, userId, "purchaser");
+        if (order == null || !order.getPurchaserId().equals(purchaserId)) {
+            throw new BusinessException(403, "无权限操作此订单");
+        }
+        
+        // 2. 查询订单
+        order = getById(orderId);
         if (order == null) {
             throw new BusinessException("订单不存在");
         }
         
-        // 2. 验证订单状态
+        // 3. 验证订单状态
         if (order.getStatus() != OrderStatus.DELIVERED) {
             throw new BusinessException("只有已交货的订单才能完成，当前订单状态：" + order.getStatus().getDesc());
         }
         
-        // 3. 验证订单是否已支付全部金额
+        // 4. 验证订单是否已支付全部金额
         List<PaymentRecord> paymentRecords = getPaymentRecordService().listByOrder(orderId);
         if (paymentRecords == null || paymentRecords.isEmpty()) {
             throw new BusinessException("订单尚未支付，无法完成");
@@ -177,17 +184,17 @@ public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, P
             throw new BusinessException("订单尚未支付全部金额，已支付：" + paidAmount + "，需支付：" + order.getTotalAmount());
         }
         
-        // 4. 查询合同
+        // 5. 查询合同
         PurchaseContract contract = contractService.getById(order.getContractId());
         if (contract == null) {
             throw new BusinessException("关联合同不存在");
         }
         
-        // 5. 更新订单状态
+        // 6. 更新订单状态
         order.setStatus(OrderStatus.COMPLETED);
         updateById(order);
         
-        // 6. 检查合同下所有订单是否都已完成，如果是，则更新合同状态为已完成
+        // 7. 检查合同下所有订单是否都已完成，如果是，则更新合同状态为已完成
         List<PurchaseOrder> contractOrders = list(
             new LambdaQueryWrapper<PurchaseOrder>()
                 .eq(PurchaseOrder::getContractId, contract.getId())

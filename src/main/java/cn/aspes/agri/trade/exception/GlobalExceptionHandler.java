@@ -64,6 +64,15 @@ public class GlobalExceptionHandler {
     }
     
     /**
+     * 处理非法参数异常
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public Result<?> handleIllegalArgumentException(IllegalArgumentException e) {
+        log.error("参数异常: {}", e.getMessage());
+        return Result.error(400, e.getMessage());
+    }
+    
+    /**
      * 处理其他异常
      */
     @ExceptionHandler(Exception.class)

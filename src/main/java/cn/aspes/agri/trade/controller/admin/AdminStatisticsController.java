@@ -29,14 +29,7 @@ public class AdminStatisticsController {
         StatisticsVO.PlatformStats stats = statisticsService.getPlatformStats();
         return Result.success(stats);
     }
-    
-    @Operation(summary = "获取市级农户活跃度（最近N分钟）")
-    @GetMapping("/farmer-activity")
-    public Result<java.util.Map<String, Long>> getFarmerActivity(@org.springframework.web.bind.annotation.RequestParam(name = "windowMinutes", defaultValue = "5") int windowMinutes) {
-        java.util.Map<String, Long> data = statisticsService.getFarmerActivityByCity(windowMinutes);
-        return Result.success(data);
-    }
-    
+
     @Operation(summary = "SSE实时推送市级农户活跃度")
     @GetMapping("/farmer-activity/stream")
     public SseEmitter streamFarmerActivity(@org.springframework.web.bind.annotation.RequestParam(name = "windowMinutes", defaultValue = "5") int windowMinutes) {

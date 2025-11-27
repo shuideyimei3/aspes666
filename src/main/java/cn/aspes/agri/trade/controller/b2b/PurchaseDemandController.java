@@ -102,9 +102,6 @@ public class PurchaseDemandController {
     @GetMapping("/{demandId}")
     public Result<PurchaseDemandVO> getDemand(@PathVariable Long demandId) {
         PurchaseDemand demand = purchaseDemandService.getById(demandId);
-        if (demand == null) {
-            return Result.success(null);
-        }
         PurchaseDemandVO vo = entityVOConverter.toPurchaseDemandVO(demand);
         return Result.success(vo);
     }

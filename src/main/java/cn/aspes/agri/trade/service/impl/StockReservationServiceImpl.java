@@ -59,6 +59,7 @@ public class StockReservationServiceImpl extends ServiceImpl<StockReservationMap
         reservation.setProductId(productId);
         reservation.setReservedQuantity(quantity);
         reservation.setStatus(ReservationStatus.PENDING);
+
         // 预留24小时后自动过期（如未支付）
         reservation.setExpiredTime(LocalDateTime.now().plusHours(24));
         

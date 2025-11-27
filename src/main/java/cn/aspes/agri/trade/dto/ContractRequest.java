@@ -35,7 +35,7 @@ public class ContractRequest {
     private String qualityStandards;
     
     private String breachTerms;
-    
-    // 合同签字文件，签署时必填
+
+    @NotNull(message = "合同文件不能为空")
     private MultipartFile signFile;
 }

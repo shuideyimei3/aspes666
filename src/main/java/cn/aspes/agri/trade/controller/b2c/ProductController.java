@@ -67,11 +67,7 @@ public class ProductController {
         // 检查产品图片大小
         if (request.getProductImageDetails() != null) {
             for (ProductImageRequest imageRequest : request.getProductImageDetails()) {
-                try {
-                    ImageProcessingUtil.checkFileSize(imageRequest.getFile());
-                } catch (IllegalArgumentException e) {
-                    return Result.error(400, e.getMessage());
-                }
+                ImageProcessingUtil.checkFileSize(imageRequest.getFile());
             }
         }
         

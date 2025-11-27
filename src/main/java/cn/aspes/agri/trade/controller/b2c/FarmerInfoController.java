@@ -32,9 +32,6 @@ public class FarmerInfoController {
     @GetMapping("/{id}")
     public Result<FarmerInfo> getDetail(@PathVariable Long id) {
         FarmerInfo farmerInfo = farmerInfoService.getById(id);
-        if (farmerInfo == null) {
-            throw new BusinessException("农户信息不存在");
-        }
         return Result.success(farmerInfo);
     }
     
@@ -53,15 +50,8 @@ public class FarmerInfoController {
                                      @RequestPart(value = "idCardFrontFile", required = true) MultipartFile idCardFrontFile,
                                      @RequestPart(value = "idCardBackFile", required = true) MultipartFile idCardBackFile,
                                      @Valid @ModelAttribute FarmerInfoRequest request) {
-        // 双重验证确保只有农户角色能提交农户信息
-        if (userDetails.getRole() != UserRole.FARMER) {
-            throw new BusinessException("只有农户角色才能提交农户信息");
-        }
-        
-        // 设置上传的文件
         request.setIdCardFrontFile(idCardFrontFile);
         request.setIdCardBackFile(idCardBackFile);
-        
         farmerInfoService.submitFarmerInfo(userDetails.getId(), request);
         return Result.success();
     }

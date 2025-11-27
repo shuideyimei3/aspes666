@@ -68,9 +68,6 @@ public class LogisticsController {
     public Result<LogisticsVO> getByOrderId(@PathVariable Long orderId,
                                            @AuthenticationPrincipal CustomUserDetails userDetails) {
         LogisticsRecord logistics = logisticsRecordService.getByOrderId(orderId, userDetails.getId());
-        if (logistics == null) {
-            return Result.success(null);
-        }
         LogisticsVO vo = entityVOConverter.toLogisticsVO(logistics);
         return Result.success(vo);
     }
@@ -81,9 +78,6 @@ public class LogisticsController {
     public Result<List<LogisticsVO>> listByOrderId(@PathVariable Long orderId,
                                                   @AuthenticationPrincipal CustomUserDetails userDetails) {
         List<LogisticsRecord> logisticsList = logisticsRecordService.listByOrderId(orderId, userDetails.getId());
-        if (logisticsList == null || logisticsList.isEmpty()) {
-            return Result.success(java.util.Collections.emptyList());
-        }
         List<LogisticsVO> voList = logisticsList.stream()
                 .map(entityVOConverter::toLogisticsVO)
                 .collect(java.util.stream.Collectors.toList());

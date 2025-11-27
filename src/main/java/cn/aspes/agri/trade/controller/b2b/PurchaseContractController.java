@@ -49,11 +49,7 @@ public class PurchaseContractController {
                                       @AuthenticationPrincipal CustomUserDetails userDetails,
                                       @RequestPart(value = "signFile", required = true) MultipartFile signFile) {
         // 检查签字文件大小
-        try {
-            ImageProcessingUtil.checkFileSize(signFile);
-        } catch (IllegalArgumentException e) {
-            return Result.error(400, e.getMessage());
-        }
+        ImageProcessingUtil.checkFileSize(signFile);
         
         String role = userDetails.getRole() == UserRole.FARMER ? "farmer" : "purchaser";
         purchaseContractService.signContract(contractId, userDetails.getId(), signFile, role);
@@ -102,9 +98,6 @@ public class PurchaseContractController {
     @GetMapping("/{contractId}")
     public Result<PurchaseContractVO> getContract(@PathVariable Long contractId) {
         PurchaseContract contract = purchaseContractService.getById(contractId);
-        if (contract == null) {
-            return Result.success(null);
-        }
         PurchaseContractVO vo = entityVOConverter.toPurchaseContractVO(contract);
         return Result.success(vo);
     }

@@ -50,8 +50,6 @@ public class StatisticsServiceImpl implements StatisticsService {
         // 查询用户的所有订单
         List<PurchaseOrder> orders;
         if ("farmer".equalsIgnoreCase(role)) {
-            // 农户：通过合同查询其作为卖方的订单
-            // ✅ 修复：先获取farmer对象，再查询合同
             FarmerInfo farmer = farmerInfoService.getByUserId(userId);
             if (farmer == null) {
                 return new StatisticsVO.UserOrderStats(0L, 0L, BigDecimal.ZERO, BigDecimal.ZERO, 0.0);
@@ -67,8 +65,6 @@ public class StatisticsServiceImpl implements StatisticsService {
                     new LambdaQueryWrapper<PurchaseOrder>()
                             .in(PurchaseOrder::getContractId, contractIds));
         } else {
-            // 采购方：通过合同查询其作为买方的订单
-            // ✅ 修复：先获取purchaser对象，再查询合同
             PurchaserInfo purchaser = purchaserInfoService.getByUserId(userId);
             if (purchaser == null) {
                 return new StatisticsVO.UserOrderStats(0L, 0L, BigDecimal.ZERO, BigDecimal.ZERO, 0.0);
@@ -116,8 +112,7 @@ public class StatisticsServiceImpl implements StatisticsService {
         if (product == null) {
             return new StatisticsVO.ProductSalesStats("", 0, BigDecimal.ZERO, 0, 0.0);
         }
-        
-        // ✅ 修复：计算销售数据（通过订单中的product_info字段）
+
         int salesCount = 0;
         BigDecimal salesAmount = BigDecimal.ZERO;
         

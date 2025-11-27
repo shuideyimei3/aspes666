@@ -23,21 +23,27 @@ public class CooperationReviewController {
     
     @Resource
     private CooperationReviewService reviewService;
-    
-    @Operation(summary = "分页查询评价")
+
+    @Operation(summary = "分页查询所有评价")
     @GetMapping("/page")
     public Result<Page<CooperationReview>> page(
             @RequestParam(defaultValue = "1") Integer current,
-            @RequestParam(defaultValue = "10") Integer size,
-            @RequestParam(required = false) Long targetId) {
+            @RequestParam(defaultValue = "10") Integer size) {
         Page<CooperationReview> page = new Page<>(current, size);
-        if (targetId != null) {
-            page = reviewService.lambdaQuery()
-                    .eq(CooperationReview::getTargetId, targetId)
-                    .page(page);
-        } else {
-            page = reviewService.page(page);
-        }
+        page = reviewService.page(page);
+        return Result.success(page);
+    }
+
+    @Operation(summary = "分页查询特定目标的评价")
+    @GetMapping("/target/{targetId}/page")
+    public Result<Page<CooperationReview>> pageByTargetId(
+            @PathVariable Long targetId,
+            @RequestParam(defaultValue = "1") Integer current,
+            @RequestParam(defaultValue = "10") Integer size) {
+        Page<CooperationReview> page = new Page<>(current, size);
+        page = reviewService.lambdaQuery()
+                .eq(CooperationReview::getTargetId, targetId)
+                .page(page);
         return Result.success(page);
     }
     

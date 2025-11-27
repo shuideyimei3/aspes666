@@ -21,11 +21,6 @@ public interface PurchaseOrderService extends IService<PurchaseOrder> {
     void deliverOrder(Long orderId, Integer actualQuantity, String inspectionResult);
     
     /**
-     * 订单完成
-     */
-    void completeOrder(Long orderId);
-    
-    /**
      * 取消订单
      */
     void cancelOrder(Long orderId, String reason);
@@ -44,4 +39,9 @@ public interface PurchaseOrderService extends IService<PurchaseOrder> {
      * 订单详情
      */
     PurchaseOrder getOrderDetail(Long orderId, Long currentUserId, String role);
+    
+    /**
+     * 采购方确认订单（带权限验证）
+     */
+    void completeOrder(Long orderId, Long userId);
 }

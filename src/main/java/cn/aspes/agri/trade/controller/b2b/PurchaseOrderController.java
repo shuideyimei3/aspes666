@@ -40,15 +40,6 @@ public class PurchaseOrderController {
         return Result.success(orderService.pageOrders(current, size, status));
     }
     
-    @Operation(summary = "基于合同创建订单（管理员权限）")
-    @PostMapping("/{contractId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public Result<PurchaseOrder> createOrderFromContract(@PathVariable Long contractId,
-                                                 @AuthenticationPrincipal CustomUserDetails userDetails) {
-        PurchaseOrder order = orderService.createOrderFromContract(contractId);
-        return Result.success(order);
-    }
-    
     @Operation(summary = "查询我的订单")
     @GetMapping("/my")
     @PreAuthorize("hasAnyRole('FARMER', 'PURCHASER')")
@@ -76,14 +67,7 @@ public class PurchaseOrderController {
     public Result<Void> completeOrder(
             @PathVariable Long id,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        // 验证当前用户是否有权限操作该订单
-        Long purchaserId = purchaserInfoService.getByUserId(userDetails.getId()).getId();
-        PurchaseOrder order = orderService.getOrderDetail(id, userDetails.getId(), "purchaser");
-        if (order == null || !order.getPurchaserId().equals(purchaserId)) {
-            throw new RuntimeException("无权限操作此订单");
-        }
-        
-        orderService.completeOrder(id);
+        orderService.completeOrder(id, userDetails.getId());
         return Result.success();
     }
 }
