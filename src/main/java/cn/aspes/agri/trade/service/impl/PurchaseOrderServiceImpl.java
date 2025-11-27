@@ -211,6 +211,45 @@ public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, P
     
     @Override
     @Transactional(rollbackFor = Exception.class)
+    public void completeOrderByAdmin(Long orderId) {
+        // 1. 查询订单
+        PurchaseOrder order = getById(orderId);
+        if (order == null) {
+            throw new BusinessException("订单不存在");
+        }
+        
+        // 2. 验证订单状态
+        if (order.getStatus() != OrderStatus.DELIVERED) {
+            throw new BusinessException("只有已交货的订单才能完成，当前订单状态：" + order.getStatus().getDesc());
+        }
+        
+        // 3. 查询合同
+        PurchaseContract contract = contractService.getById(order.getContractId());
+        if (contract == null) {
+            throw new BusinessException("关联合同不存在");
+        }
+        
+        // 4. 更新订单状态
+        order.setStatus(OrderStatus.COMPLETED);
+        updateById(order);
+        
+        // 5. 检查合同下所有订单是否都已完成，如果是，则更新合同状态为已完成
+        List<PurchaseOrder> contractOrders = list(
+            new LambdaQueryWrapper<PurchaseOrder>()
+                .eq(PurchaseOrder::getContractId, contract.getId())
+        );
+        
+        boolean allCompleted = contractOrders.stream()
+            .allMatch(o -> o.getStatus() == OrderStatus.COMPLETED || o.getStatus() == OrderStatus.CANCELLED);
+            
+        if (allCompleted) {
+            contract.setStatus(ContractStatus.COMPLETED);
+            contractService.updateById(contract);
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
     public void cancelOrder(Long orderId, String reason) {
         PurchaseOrder order = getById(orderId);
         if (order == null) {

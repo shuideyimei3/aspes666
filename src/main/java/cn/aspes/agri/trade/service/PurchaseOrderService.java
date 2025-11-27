@@ -44,4 +44,9 @@ public interface PurchaseOrderService extends IService<PurchaseOrder> {
      * 采购方确认订单（带权限验证）
      */
     void completeOrder(Long orderId, Long userId);
+    
+    /**
+     * 管理员强制完成订单
+     */
+    void completeOrderByAdmin(Long orderId);
 }

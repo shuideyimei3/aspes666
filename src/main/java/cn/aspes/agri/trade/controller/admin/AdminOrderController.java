@@ -85,7 +85,8 @@ public class AdminOrderController {
     @Operation(summary = "强制完成订单")
     @PutMapping("/{orderId}/force-complete")
     public Result<Void> forceCompleteOrder(@PathVariable Long orderId) {
-        purchaseOrderService.completeOrder(orderId);
+        // 管理员强制完成订单，使用管理员专用的方法
+        purchaseOrderService.completeOrderByAdmin(orderId);
         return Result.success();
     }
     
