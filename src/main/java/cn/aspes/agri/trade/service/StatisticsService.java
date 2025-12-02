@@ -2,6 +2,8 @@ package cn.aspes.agri.trade.service;
 
 import cn.aspes.agri.trade.vo.StatisticsVO;
 
+import java.util.Map;
+
 /**
  * 数据统计分析服务接口
  */
@@ -40,5 +42,5 @@ public interface StatisticsService {
     /**
      * 获取最近N分钟各城市农户活跃度
      */
-    java.util.Map<String, Long> getFarmerActivityByCity(int windowMinutes);
+    Map<String, Long> getFarmerActivityByCity(int windowMinutes);
 }

@@ -25,7 +25,7 @@ public class ProductCategory {
     private Long parentId;
     
     @TableField(typeHandler = JacksonTypeHandler.class)
-    private Map<String, String> attribute;
+    private Map<String, Object> attribute;
     
     private String status;
     

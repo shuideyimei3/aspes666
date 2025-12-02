@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -21,9 +22,11 @@ import org.springframework.web.bind.annotation.*;
 /**
  * C端 - 产品管理控制器
  */
+@Slf4j
 @Tag(name = "C端 - 产品管理")
 @RestController
 @RequestMapping("/api/farmer/products")
+
 public class ProductController {
     
     @Resource
@@ -50,7 +53,7 @@ public class ProductController {
                 }
             }
         }
-        
+        log.info("发布产品: {}", request);
         Long farmerId = farmerInfoService.getByUserId(userDetails.getId()).getId();
         Long productId = farmerProductService.publishProduct(farmerId, request);
         return Result.success(productId);
