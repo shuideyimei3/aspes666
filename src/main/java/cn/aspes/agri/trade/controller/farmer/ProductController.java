@@ -120,7 +120,7 @@ public class ProductController {
     }
     
     @Operation(summary = "查询产品详情")
-    @PreAuthorize("hasAnyRole('FARMER', 'ADMIN')")
+    @GetMapping("/{productId}")
     public Result<FarmerProductVO> getProduct(@PathVariable Long productId) {
         FarmerProductVO vo = farmerProductService.getProductWithImagesById(productId);
         return Result.success(vo);
