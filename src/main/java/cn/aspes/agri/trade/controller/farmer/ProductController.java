@@ -40,7 +40,7 @@ public class ProductController {
     
     @Operation(summary = "发布产品")
     @PostMapping(consumes = {"multipart/form-data"})
-    @PreAuthorize("hasRole('FARMER')")
+    @PreAuthorize("hasAnyRole('FARMER', 'ADMIN')")
     public Result<Long> publishProduct(@AuthenticationPrincipal CustomUserDetails userDetails,
                                         @Valid @ModelAttribute FarmerProductRequest request) {
         // 检查产品图片大小
@@ -61,7 +61,7 @@ public class ProductController {
     
     @Operation(summary = "更新产品")
     @PutMapping(value = "/{productId}", consumes = {"multipart/form-data"})
-    @PreAuthorize("hasRole('FARMER')")
+    @PreAuthorize("hasAnyRole('FARMER', 'ADMIN')")
     public Result<Void> updateProduct(@PathVariable Long productId,
                                        @AuthenticationPrincipal CustomUserDetails userDetails,
                                        @Valid @ModelAttribute FarmerProductRequest request) {
@@ -79,7 +79,7 @@ public class ProductController {
     
     @Operation(summary = "产品上架")
     @PutMapping("/{productId}/on-sale")
-    @PreAuthorize("hasRole('FARMER')")
+    @PreAuthorize("hasAnyRole('FARMER', 'ADMIN')")
     public Result<Void> onSaleProduct(@PathVariable Long productId,
                                        @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long farmerId = farmerInfoService.getByUserId(userDetails.getId()).getId();
@@ -89,7 +89,7 @@ public class ProductController {
     
     @Operation(summary = "产品下架")
     @PutMapping("/{productId}/off-sale")
-    @PreAuthorize("hasRole('FARMER')")
+    @PreAuthorize("hasAnyRole('FARMER', 'ADMIN')")
     public Result<Void> offSaleProduct(@PathVariable Long productId,
                                         @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long farmerId = farmerInfoService.getByUserId(userDetails.getId()).getId();
@@ -110,7 +110,7 @@ public class ProductController {
     
     @Operation(summary = "查询我的产品列表")
     @GetMapping("/my")
-    @PreAuthorize("hasRole('FARMER')")
+    @PreAuthorize("hasAnyRole('FARMER', 'ADMIN')")
     public Result<IPage<FarmerProductVO>> listMyProducts(@AuthenticationPrincipal CustomUserDetails userDetails,
                                                         @RequestParam(defaultValue = "1") int pageNum,
                                                         @RequestParam(defaultValue = "10") int pageSize) {
@@ -120,7 +120,7 @@ public class ProductController {
     }
     
     @Operation(summary = "查询产品详情")
-    @GetMapping("/{productId}")
+    @PreAuthorize("hasAnyRole('FARMER', 'ADMIN')")
     public Result<FarmerProductVO> getProduct(@PathVariable Long productId) {
         FarmerProductVO vo = farmerProductService.getProductWithImagesById(productId);
         return Result.success(vo);

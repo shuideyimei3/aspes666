@@ -402,15 +402,21 @@ public class PurchaseOrderServiceImpl extends ServiceImpl<PurchaseOrderMapper, P
             throw new BusinessException("只有执行中的合同才能交货，当前合同状态：" + contract.getStatus().getDesc());
         }
         
-        // 5. 更新订单信息
+        // 5. 计算实际金额：根据合同单价和实际交货数量计算
+        BigDecimal unitPrice = contract.getTotalAmount().divide(new BigDecimal(contract.getQuantity()), 2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal actualAmount = unitPrice.multiply(new BigDecimal(actualQuantity));
+        
+        // 6. 更新订单信息
         // 如果是第一次交货，设置交货时间和检验结果
         if (order.getActualQuantity() == null) {
             order.setDeliveryTime(LocalDateTime.now());
             order.setInspectionResult(inspectionResult);
             order.setActualQuantity(actualQuantity);
+            order.setActualAmount(actualAmount);
         } else {
-            // 如果不是第一次交货，累加交货数量
+            // 如果不是第一次交货，累加交货数量和金额
             order.setActualQuantity(order.getActualQuantity() + actualQuantity);
+            order.setActualAmount(order.getActualAmount().add(actualAmount));
         }
         
         // 更新订单状态为已交货

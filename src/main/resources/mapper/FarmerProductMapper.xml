@@ -68,9 +68,6 @@
             <if test="status != null and status != ''">
                 AND p.status = #{status}
             </if>
-            <if test="status == null or status == ''">
-                AND p.status = 'ON_SALE'
-            </if>
         </where>
         ORDER BY p.create_time DESC, pi.sort ASC
     </select>

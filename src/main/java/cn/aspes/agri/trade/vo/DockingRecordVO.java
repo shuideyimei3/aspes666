@@ -43,5 +43,7 @@ public class DockingRecordVO {
     
     private String purchaserRemark;
     
+    private String purchaserName;  // 采购商公司名称
+    
     private LocalDateTime createTime;
 }
