@@ -13,8 +13,7 @@
 - **缓存**: Redis
 - **文档**: SpringDoc OpenAPI (Swagger)
 - **对象存储**: 阿里云OSS
-- **工具库**: Hutool、ModelMapper、Thumbnailator
-- **测试框架**: JUnit 5、RestAssured、H2 Database
+- **工具库**: ModelMapper
 
 ## 核心功能
 
@@ -98,8 +97,8 @@ src/main/java/cn/aspes/agri/trade/
 
 1. 克隆项目到本地
 ```bash
-git clone https://github.com/your-username/agri-trade-platform.git
-cd agri-trade-platform
+git clone https://github.com/shuideyimei3/aspes666.git
+cd aspes666
 ```
 
 2. 配置数据库
@@ -109,7 +108,7 @@ mysql -u root -p
 CREATE DATABASE aspes CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 # 导入初始化SQL
-mysql -u root -p aspes < init.sql
+mysql -u root -p aspes < aspes.sql
 ```
 
 3. 修改配置文件
@@ -132,16 +131,6 @@ mvn spring-boot:run
 - API文档: http://localhost:8080/swagger-ui.html
 - 健康检查: http://localhost:8080/actuator/health
 
-### Docker部署
-
-```bash
-# 构建镜像
-docker build -t agri-trade-platform .
-
-# 运行容器
-docker run -d -p 8080:8080 --name agri-trade-platform agri-trade-platform
-```
-
 ## API文档
 
 项目使用SpringDoc OpenAPI自动生成API文档，启动项目后可通过以下地址访问：
@@ -149,36 +138,6 @@ docker run -d -p 8080:8080 --name agri-trade-platform agri-trade-platform
 - Swagger UI: http://localhost:8080/swagger-ui.html
 - OpenAPI JSON: http://localhost:8080/v3/api-docs
 
-## 测试
-
-```bash
-# 运行所有测试
-mvn test
-
-# 运行特定测试类
-mvn test -Dtest=UserServiceTest
-
-# 生成测试覆盖率报告
-mvn jacoco:report
-```
-
-## 贡献指南
-
-1. Fork 本仓库
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 提交 Pull Request
-
-## 许可证
-
-本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情
-
-## 联系方式
-
-- 项目维护者: [Your Name]
-- 邮箱: [your.email@example.com]
-- 项目链接: [https://github.com/your-username/agri-trade-platform](https://github.com/your-username/agri-trade-platform)
 
 ## 更新日志
 
