@@ -5,6 +5,7 @@ import cn.aspes.agri.trade.entity.*;
 import cn.aspes.agri.trade.service.ProductImageService;
 import cn.aspes.agri.trade.service.OriginAreaService;
 import cn.aspes.agri.trade.service.FarmerInfoService;
+import cn.aspes.agri.trade.service.FarmerProductService;
 import cn.aspes.agri.trade.service.PurchaserInfoService;
 import cn.aspes.agri.trade.service.PurchaseDemandService;
 import cn.aspes.agri.trade.vo.*;
@@ -12,8 +13,12 @@ import cn.aspes.agri.trade.vo.*;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -23,9 +28,10 @@ import java.util.stream.Collectors;
 /**
  * Entity到VO转换器 - 使用ModelMapper
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
-public class EntityVOConverter {
+public class EntityVOConverter implements ApplicationContextAware {
 
     private final ModelMapper modelMapper;
     private final ProductImageService productImageService;
@@ -33,6 +39,24 @@ public class EntityVOConverter {
     private final FarmerInfoService farmerInfoService;
     private final PurchaserInfoService purchaserInfoService;
     private final PurchaseDemandService purchaseDemandService;
+    
+    private ApplicationContext applicationContext;
+    private FarmerProductService farmerProductService;
+    
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
+    }
+    
+    /**
+     * 获取FarmerProductService（延迟加载，避免循环依赖）
+     */
+    private FarmerProductService getFarmerProductService() {
+        if (farmerProductService == null) {
+            farmerProductService = applicationContext.getBean(FarmerProductService.class);
+        }
+        return farmerProductService;
+    }
 
     // ============== User转换 ==============
 
@@ -242,13 +266,24 @@ public class EntityVOConverter {
             }
         }
 
-        // 设置采购商名称
+        // 设置响应产品名称
+        if (record.getProductId() != null) {
+            FarmerProduct product = getFarmerProductService().getById(record.getProductId());
+            if (product != null) {
+                vo.setProductName(product.getName());
+            }
+        }
+
+        // 设置需求相关信息（需求产品名称、采购商名称）
         if (record.getDemandId() != null) {
             PurchaseDemand demand = purchaseDemandService.getById(record.getDemandId());
-            if (demand != null && demand.getPurchaserId() != null) {
-                PurchaserInfo purchaserInfo = purchaserInfoService.getById(demand.getPurchaserId());
-                if (purchaserInfo != null) {
-                    vo.setPurchaserName(purchaserInfo.getCompanyName());
+            if (demand != null) {
+                vo.setDemandProductName(demand.getProductName());
+                if (demand.getPurchaserId() != null) {
+                    PurchaserInfo purchaserInfo = purchaserInfoService.getById(demand.getPurchaserId());
+                    if (purchaserInfo != null) {
+                        vo.setPurchaserName(purchaserInfo.getCompanyName());
+                    }
                 }
             }
         }
