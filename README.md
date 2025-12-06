@@ -131,6 +131,11 @@ mvn spring-boot:run
 - API文档: http://localhost:8080/swagger-ui.html
 - 健康检查: http://localhost:8080/actuator/health
 
+6. 启动前端
+ - 重新clone项目
+ - 切换分支到fronted
+ - npm install
+ - npm run dev
 ## API文档
 
 项目使用SpringDoc OpenAPI自动生成API文档，启动项目后可通过以下地址访问：
