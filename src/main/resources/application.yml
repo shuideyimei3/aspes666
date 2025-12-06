@@ -1,0 +1,50 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: agri-trade-platform
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  
+  # SQL初始化配置
+  sql:
+    init:
+      mode: always
+      continue-on-error: true
+      schema-locations: classpath:init.sql
+      data-locations: classpath:init.sql
+
+  # 文件上传配置
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 100MB
+
+# MyBatis Plus配置
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: isDelete
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+  type-aliases-package: cn.aspes.agri.trade.entity
+
+# SpringDoc配置
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+# Redis 时间配置
+redis:
+  # Spring Cache 注解缓存过期时间（小时）
+  cache-ttl-hours: 1
+  # 登录失败最大次数
+  login-fail-max-count: 5
+  # 登录失败锁定时间（分钟）
+  login-fail-lock-time-minutes: 30

@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.aspes.agri.trade.mapper.FarmerProductMapper">
+
+    <resultMap id="ProductWithImagesMap" type="cn.aspes.agri.trade.vo.FarmerProductVO">
+        <id column="id" property="id"/>
+        <result column="farmer_id" property="farmerId"/>
+        <result column="farm_name" property="farmName"/>
+        <result column="category_id" property="categoryId"/>
+        <result column="category_name" property="categoryName"/>
+        <result column="name" property="name"/>
+        <result column="spec" property="spec"/>
+        <result column="unit" property="unit"/>
+        <result column="price" property="price"/>
+        <result column="min_purchase" property="minPurchase"/>
+        <result column="stock" property="stock"/>
+        <result column="production_date" property="productionDate"/>
+        <result column="shelf_life" property="shelfLife"/>
+        <result column="production_method" property="productionMethod"/>
+        <result column="origin_area_id" property="originAreaId"/>
+        <result column="origin_area_name" property="originAreaName"/>
+        <result column="description" property="description"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <collection property="images" ofType="cn.aspes.agri.trade.dto.ProductImageDTO">
+            <result column="image_url" property="url"/>
+            <result column="image_type" property="imageType"/>
+            <result column="image_sort" property="sort"/>
+        </collection>
+    </resultMap>
+
+    <select id="selectProductsWithImages" resultMap="ProductWithImagesMap">
+        SELECT 
+            p.id,
+            p.farmer_id,
+            fi.farm_name,
+            p.category_id,
+            pc.name AS category_name,
+            p.name,
+            p.spec,
+            p.unit,
+            p.price,
+            p.min_purchase,
+            p.stock,
+            p.production_date,
+            p.shelf_life,
+            p.production_method,
+            p.origin_area_id,
+            oa.area_name AS origin_area_name,
+            p.description,
+            p.status,
+            p.create_time,
+            pi.image_url,
+            pi.image_type,
+            pi.sort AS image_sort
+        FROM farmer_product p
+        LEFT JOIN farmer_info fi ON p.farmer_id = fi.id
+        LEFT JOIN product_category pc ON p.category_id = pc.id
+        LEFT JOIN origin_area oa ON p.origin_area_id = oa.area_id
+        LEFT JOIN product_image pi ON p.id = pi.product_id
+        <where>
+            <if test="categoryId != null">
+                AND p.category_id = #{categoryId}
+            </if>
+            <if test="originAreaId != null">
+                AND p.origin_area_id = #{originAreaId}
+            </if>
+            <if test="status != null and status != ''">
+                AND p.status = #{status}
+            </if>
+        </where>
+        ORDER BY p.create_time DESC, pi.sort ASC
+    </select>
+
+    <select id="selectMyProductsWithImages" resultMap="ProductWithImagesMap">
+        SELECT 
+            p.id,
+            p.farmer_id,
+            fi.farm_name,
+            p.category_id,
+            pc.name AS category_name,
+            p.name,
+            p.spec,
+            p.unit,
+            p.price,
+            p.min_purchase,
+            p.stock,
+            p.production_date,
+            p.shelf_life,
+            p.production_method,
+            p.origin_area_id,
+            oa.area_name AS origin_area_name,
+            p.description,
+            p.status,
+            p.create_time,
+            pi.image_url,
+            pi.image_type,
+            pi.sort AS image_sort
+        FROM farmer_product p
+        LEFT JOIN farmer_info fi ON p.farmer_id = fi.id
+        LEFT JOIN product_category pc ON p.category_id = pc.id
+        LEFT JOIN origin_area oa ON p.origin_area_id = oa.area_id
+        LEFT JOIN product_image pi ON p.id = pi.product_id
+        WHERE p.farmer_id = #{farmerId}
+        ORDER BY p.create_time DESC, pi.sort ASC
+    </select>
+
+    <select id="selectProductWithImagesById" resultMap="ProductWithImagesMap">
+        SELECT 
+            p.id,
+            p.farmer_id,
+            fi.farm_name,
+            p.category_id,
+            pc.name AS category_name,
+            p.name,
+            p.spec,
+            p.unit,
+            p.price,
+            p.min_purchase,
+            p.stock,
+            p.production_date,
+            p.shelf_life,
+            p.production_method,
+            p.origin_area_id,
+            oa.area_name AS origin_area_name,
+            p.description,
+            p.status,
+            p.create_time,
+            pi.image_url,
+            pi.image_type,
+            pi.sort AS image_sort
+        FROM farmer_product p
+        LEFT JOIN farmer_info fi ON p.farmer_id = fi.id
+        LEFT JOIN product_category pc ON p.category_id = pc.id
+        LEFT JOIN origin_area oa ON p.origin_area_id = oa.area_id
+        LEFT JOIN product_image pi ON p.id = pi.product_id
+        WHERE p.id = #{productId}
+        ORDER BY pi.sort ASC
+    </select>
+
+</mapper>
