@@ -16,13 +16,6 @@ dist
 .cache/
 .prettierignore
 
-# 后端项目排除路径
-/target/src/main/resources/application.yml
-target/
-
-# 敏感配置文件 - 不提交到版本控制系统
-/src/main/resources/application-prod.yml
-/src/main/resources/application-dev.yml
 
 # 日志文件
 logs/
